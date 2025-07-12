@@ -17,5 +17,5 @@ Easily find resources tha would be suitable to your current sitution by searchin
 ## Team
 
 - Ahmed Elshahawy - Developer : [Github](https://github.com/kazaky)
-- Nurul - Developer : [Github](https://github.com/numulaa)
+- Nurul Mukhlisa - Developer : [Github](https://github.com/numulaa)
 - Mohammad - Developer : [Github]()
