@@ -1,5 +1,5 @@
+import { ArrowLeft, Stethoscope } from 'lucide-react';
 import React, { useState } from 'react';
-import { Stethoscope, ArrowLeft } from 'lucide-react';
 import { User } from '../../types';
 
 interface RegisterFormProps {
@@ -39,6 +39,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       <div className="w-full max-w-md bg-gray-800 rounded-lg p-8 shadow-lg">
         <div className="flex items-center mb-6">
           <button
+          title='leftArrow'
             onClick={onSwitchToLogin}
             className="text-gray-400 hover:text-white mr-3"
           >
