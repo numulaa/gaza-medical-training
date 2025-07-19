@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { LoginForm } from './components/Auth/LoginForm';
 import { RegisterForm } from './components/Auth/RegisterForm';
 import { JoinConsultationForm } from './components/JoinConsultation/JoinConsultationForm';
@@ -135,7 +135,7 @@ function App() {
     }
   };
 
-  const handleSendResponse = async (content: string) => {
+  const handleSendResponse = async (_: string) => {
     notImplemented('Send Response');
   };
 
@@ -153,8 +153,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-lg">Loading...</div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+        <div className="text-white text-base sm:text-lg">Loading...</div>
       </div>
     );
   }
@@ -204,14 +204,14 @@ function App() {
   if (user.role === 'specialist' && !user.isApproved) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-gray-800 rounded-lg p-8 max-w-md text-center">
-          <h2 className="text-xl font-semibold text-white mb-4">Awaiting Approval</h2>
-          <p className="text-gray-300 mb-6">
+        <div className="bg-gray-800 rounded-lg p-6 sm:p-8 max-w-md text-center">
+          <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Awaiting Approval</h2>
+          <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
             Your specialist account is pending admin approval. You'll receive an email once approved.
           </p>
           <button
             onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg text-white transition-colors"
+            className="bg-red-600 hover:bg-red-700 px-4 sm:px-6 py-2 rounded-lg text-white transition-colors text-sm sm:text-base"
           >
             Logout
           </button>
