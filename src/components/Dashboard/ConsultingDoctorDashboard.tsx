@@ -265,9 +265,9 @@ export const ConsultingDoctorDashboard: React.FC<ConsultingDoctorDashboardProps>
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header - Mobile First */}
+      {/* Header - Mobile First until 716px */}
       <div className="bg-gray-800 border-b border-gray-700 p-3 sm:p-4">
-        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="flex flex-col space-y-3 mobile:flex-row mobile:items-center mobile:justify-between mobile:space-y-0">
           {/* User Info Section */}
           <div className="flex items-center gap-3">
             <User className="text-red-500 flex-shrink-0" size={20} />
@@ -275,23 +275,31 @@ export const ConsultingDoctorDashboard: React.FC<ConsultingDoctorDashboardProps>
               <h1 className="text-base sm:text-lg font-semibold truncate">Dr. {user.name}</h1>
               <p className="text-xs sm:text-sm text-gray-400 truncate">{user.specialty || 'Consulting Doctor'}</p>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <ConnectionStatus status={connectionStatus} />
+              {/* Mobile Logout - Next to connection status */}
+              <button
+                onClick={onLogout}
+                className="flex items-center justify-center gap-1 px-2 py-1 text-gray-400 hover:text-white transition-colors mobile:hidden"
+              >
+                <LogOut size={16} />
+                <span className="text-sm">Logout</span>
+              </button>
             </div>
           </div>
           
           {/* Actions Section */}
-          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+          <div className="flex flex-col space-y-2 mobile:flex-row mobile:items-center mobile:space-y-0 mobile:space-x-3">
             {/* Join Code Input - Mobile Stacked */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-none">
+            <div className="flex items-center gap-2 w-full mobile:w-auto">
+              <div className="relative flex-1 mobile:flex-none">
                 <Hash className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
                 <input
                   type="text"
                   value={joinCode}
                   onChange={handleJoinCodeChange}
                   placeholder="Enter code"
-                  className="w-full sm:w-32 pl-7 pr-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                  className="w-full mobile:w-32 pl-7 pr-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
                 />
               </div>
               <button
@@ -303,25 +311,35 @@ export const ConsultingDoctorDashboard: React.FC<ConsultingDoctorDashboardProps>
               </button>
             </div>
             
-            {/* Consult Specialist Button */}
+            {/* Desktop Consult Specialist Button */}
             <button
               onClick={() => setShowNewConsultation(true)}
-              className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition-colors w-full sm:w-auto"
+              className="hidden mobile:flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition-colors"
             >
               <Plus size={14} />
-              <span className="hidden sm:inline">Consult a Specialist</span>
-              <span className="sm:hidden">Consult</span>
+              <span>Consult a Specialist</span>
             </button>
             
-            {/* Logout Button */}
+            {/* Desktop Logout Button */}
             <button
               onClick={onLogout}
-              className="flex items-center justify-center gap-1 px-2 py-1.5 text-gray-400 hover:text-white transition-colors w-full sm:w-auto"
+              className="hidden mobile:flex items-center justify-center gap-1 px-3 py-1.5 text-gray-400 hover:text-white transition-colors"
             >
               <LogOut size={16} />
               <span className="text-sm">Logout</span>
             </button>
           </div>
+        </div>
+        
+        {/* Mobile Consult Button - Full width below header */}
+        <div className="mt-3 mobile:hidden">
+          <button
+            onClick={() => setShowNewConsultation(true)}
+            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition-colors w-full"
+          >
+            <Plus size={14} />
+            <span>Consult</span>
+          </button>
         </div>
       </div>
 
@@ -370,7 +388,7 @@ export const ConsultingDoctorDashboard: React.FC<ConsultingDoctorDashboardProps>
             </button>
           </div>
 
-          {/* Filters and Sorting - Mobile Stacked */}
+          {/* Filters and Sorting - Mobile Stacked until 716px, then iPad Horizontal */}
           <div className="bg-gray-800 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs sm:text-sm font-medium text-gray-300">Filter & Sort</h4>
@@ -388,7 +406,7 @@ export const ConsultingDoctorDashboard: React.FC<ConsultingDoctorDashboardProps>
               </button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
+            <div className="grid grid-cols-1 mobile:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
               {/* Sort By */}
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Sort By</label>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, LogOut, MessageSquare, Clock, CheckCircle, AlertTriangle} from 'lucide-react';
+import { User, LogOut, MessageSquare, Clock, CheckCircle, AlertTriangle, Hash, Plus} from 'lucide-react';
 import { User as UserType, Consultation } from '../../types';
 import { ConnectionStatus } from '../ConnectionStatus';
 import { ConnectionStatus as ConnectionStatusType } from '../../types';
@@ -159,9 +159,9 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header - Mobile First */}
+      {/* Header - Mobile First until 716px */}
       <div className="bg-gray-800 border-b border-gray-700 p-3 sm:p-4">
-        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-3 sm:mb-4">
+        <div className="flex flex-col space-y-3 mobile:flex-row mobile:items-center mobile:justify-between mobile:space-y-0 mb-3 sm:mb-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0">
               <User className="text-red-500" size={20} />
@@ -171,26 +171,39 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
               <h1 className="text-base sm:text-lg font-semibold truncate">Dr. {user.name}</h1>
               <p className="text-xs sm:text-sm text-gray-400 truncate">{user.specialty} Specialist</p>
             </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ConnectionStatus status={connectionStatus} />
+              {/* Mobile Logout - Next to connection status */}
+              <button
+                onClick={onLogout}
+                className="flex items-center justify-center gap-1 px-2 py-1 text-gray-400 hover:text-white transition-colors mobile:hidden"
+              >
+                <LogOut size={16} />
+                <span className="text-sm">Logout</span>
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+          <div className="flex flex-col space-y-2 mobile:flex-row mobile:items-center mobile:space-y-0 mobile:space-x-4">
             <select
               value={availabilityStatus}
               onChange={(e) => setAvailabilityStatus(e.target.value as any)}
-              className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
+              className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-red-500 w-full mobile:w-auto"
             >
               <option value="available">Available</option>
               <option value="busy">Busy</option>
               <option value="offline">Offline</option>
             </select>
+            {/* Desktop Logout - Next to availability dropdown */}
             <button
               onClick={onLogout}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-gray-300 hover:text-white transition-colors w-full sm:w-auto"
+              className="hidden mobile:flex items-center justify-center gap-2 px-3 py-2 text-gray-300 hover:text-white transition-colors"
             >
               <LogOut size={16} />
               <span className="text-sm">Logout</span>
             </button>
           </div>
         </div>
+        
         <ConnectionStatus status={connectionStatus} />
       </div>
 
