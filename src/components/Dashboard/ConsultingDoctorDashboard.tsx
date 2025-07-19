@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AlertCircle, Clock, Hash, LogOut, Plus, User } from "lucide-react";
 import React, { useState } from "react";
 import {
@@ -10,6 +8,8 @@ import {
 import { ConnectionStatus } from "../ConnectionStatus";
 import { ConsultationThread } from "../Consultation/ConsultationThread";
 import { NewConsultationForm } from "./NewConsultationForm";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface ConsultingDoctorDashboardProps {
 	user: UserType;
@@ -249,14 +249,16 @@ export const ConsultingDoctorDashboard: React.FC<
 	) => (
 		<div
 			key={consultation.id}
-			className={`bg-gray-800 border rounded-lg p-4 ${getPriorityColor(
+			className={`bg-gray-800 border rounded-lg p-3 sm:p-4 ${getPriorityColor(
 				consultation.priority
 			)}`}
 		>
-			<div className="flex items-start justify-between mb-2">
-				<div className="flex items-center gap-2">
-					<span>{getPriorityIcon(consultation.priority)}</span>
-					<span className="text-sm font-medium">
+			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 sm:mb-2">
+				<div className="flex items-center gap-2 mb-2 sm:mb-0">
+					<span className="text-sm">
+						{getPriorityIcon(consultation.priority)}
+					</span>
+					<span className="text-xs sm:text-sm font-medium">
 						{consultation.specialty}
 					</span>
 					{!isMyQuestion && (
@@ -271,15 +273,15 @@ export const ConsultingDoctorDashboard: React.FC<
 				</div>
 			</div>
 
-			<h4 className="font-medium text-white mb-1">
+			<h4 className="font-medium text-white mb-1 text-sm sm:text-base">
 				{consultation.title}
 			</h4>
-			<p className="text-gray-300 text-sm mb-3">
+			<p className="text-gray-300 text-xs sm:text-sm mb-3">
 				{consultation.description}
 			</p>
 
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-4 text-xs">
+			<div className="flex flex-row items-center justify-between space-y-0">
+				<div className="flex items-center gap-2 sm:gap-4 text-xs flex-wrap">
 					<span
 						className={`px-2 py-1 rounded ${
 							consultation.status === "open"
@@ -300,7 +302,7 @@ export const ConsultingDoctorDashboard: React.FC<
 				</div>
 				<button
 					onClick={() => setSelectedConsultation(consultation)}
-					className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors"
+					className="text-red-400 hover:text-red-300 text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ml-2"
 				>
 					{isMyQuestion ? "View Responses" : "Respond"} →
 				</button>
@@ -324,28 +326,33 @@ export const ConsultingDoctorDashboard: React.FC<
 
 	return (
 		<div className="min-h-screen bg-gray-900 text-white">
-			{/* Header */}
-			<div className="bg-gray-800 border-b border-gray-700 p-4">
-				<div className="flex items-center justify-between">
+			{/* Header - Mobile First */}
+			<div className="bg-gray-800 border-b border-gray-700 p-3 sm:p-4">
+				<div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+					{/* User Info Section */}
 					<div className="flex items-center gap-3">
-						<User className="text-red-500" size={24} />
-						<div>
-							<h1 className="text-lg font-semibold">
+						<User
+							className="text-red-500 flex-shrink-0"
+							size={20}
+						/>
+						<div className="min-w-0 flex-1">
+							<h1 className="text-base sm:text-lg font-semibold truncate">
 								Dr. {user.name}
 							</h1>
-							<p className="text-sm text-gray-400">
+							<p className="text-xs sm:text-sm text-gray-400 truncate">
 								{user.specialty || "Consulting Doctor"}
 							</p>
 						</div>
-						<div className="ml-6">
+						<div className="flex-shrink-0">
 							<ConnectionStatus status={connectionStatus} />
 						</div>
 					</div>
 
-					<div className="flex items-center gap-3">
-						{/* Join Code Input */}
-						<div className="flex items-center gap-2">
-							<div className="relative">
+					{/* Actions Section */}
+					<div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+						{/* Join Code Input - Mobile Stacked */}
+						<div className="flex items-center gap-2 w-full sm:w-auto">
+							<div className="relative flex-1 sm:flex-none">
 								<Hash
 									className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
 									size={14}
@@ -355,15 +362,13 @@ export const ConsultingDoctorDashboard: React.FC<
 									value={joinCode}
 									onChange={handleJoinCodeChange}
 									placeholder="Enter code"
-									className="w-32 pl-7 pr-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
-									aria-label="Consultation join code"
+									className="w-full sm:w-32 pl-7 pr-3 py-1.5 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
 								/>
 							</div>
 							<button
 								onClick={handleJoinConsultation}
 								disabled={!joinCode.trim()}
-								className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors"
-								aria-label="Join consultation"
+								className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded transition-colors flex-shrink-0"
 							>
 								Join
 							</button>
@@ -372,18 +377,19 @@ export const ConsultingDoctorDashboard: React.FC<
 						{/* Consult Specialist Button */}
 						<button
 							onClick={() => setShowNewConsultation(true)}
-							className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition-colors"
-							aria-label="Consult a Specialist"
+							className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium transition-colors w-full sm:w-auto"
 						>
 							<Plus size={14} />
-							Consult a Specialist
+							<span className="hidden sm:inline">
+								Consult a Specialist
+							</span>
+							<span className="sm:hidden">Consult</span>
 						</button>
 
 						{/* Logout Button */}
 						<button
 							onClick={onLogout}
-							className="flex items-center gap-1 px-2 py-1.5 text-gray-400 hover:text-white transition-colors"
-							aria-label="Logout"
+							className="flex items-center justify-center gap-1 px-2 py-1.5 text-gray-400 hover:text-white transition-colors w-full sm:w-auto"
 						>
 							<LogOut size={16} />
 							<span className="text-sm">Logout</span>
@@ -392,12 +398,12 @@ export const ConsultingDoctorDashboard: React.FC<
 				</div>
 			</div>
 
-			<div className="p-4 space-y-6">
+			<div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
 				{/* New Consultation Form */}
 				{showNewConsultation && (
 					<div className="mb-4">
 						<NewConsultationForm
-							onSubmit={(data) => {
+							onSubmit={(_) => {
 								notImplemented("Submit Consultation");
 								setShowNewConsultation(false);
 							}}
@@ -409,34 +415,44 @@ export const ConsultingDoctorDashboard: React.FC<
 
 				{/* Consultation Tabs */}
 				<div className="space-y-4">
-					{/* Tab Navigation */}
+					{/* Tab Navigation - Mobile Full Width */}
 					<div className="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
 						<button
 							onClick={() => setActiveTab("my_questions")}
-							className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+							className={`flex-1 px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
 								activeTab === "my_questions"
 									? "bg-red-600 text-white"
 									: "text-gray-400 hover:text-white"
 							}`}
 						>
-							Questions Asked ({myQuestions.length})
+							<span className="hidden sm:inline">
+								Questions Asked
+							</span>
+							<span className="sm:hidden">Asked</span>
+							<span className="ml-1">({myQuestions.length})</span>
 						</button>
 						<button
 							onClick={() => setActiveTab("received")}
-							className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+							className={`flex-1 px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
 								activeTab === "received"
 									? "bg-red-600 text-white"
 									: "text-gray-400 hover:text-white"
 							}`}
 						>
-							Questions Received ({receivedConsultations.length})
+							<span className="hidden sm:inline">
+								Questions Received
+							</span>
+							<span className="sm:hidden">Received</span>
+							<span className="ml-1">
+								({receivedConsultations.length})
+							</span>
 						</button>
 					</div>
 
-					{/* Filters and Sorting */}
-					<div className="bg-gray-800 rounded-lg p-4 space-y-4">
+					{/* Filters and Sorting - Mobile Stacked */}
+					<div className="bg-gray-800 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
 						<div className="flex items-center justify-between">
-							<h4 className="text-sm font-medium text-gray-300">
+							<h4 className="text-xs sm:text-sm font-medium text-gray-300">
 								Filter & Sort
 							</h4>
 							<button
@@ -453,20 +469,18 @@ export const ConsultingDoctorDashboard: React.FC<
 							</button>
 						</div>
 
-						<div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
 							{/* Sort By */}
 							<div>
 								<label className="block text-xs text-gray-400 mb-1">
 									Sort By
 								</label>
 								<select
-									id="sortBy"
 									value={sortBy}
 									onChange={(e) =>
 										setSortBy(e.target.value as any)
 									}
 									className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
-									aria-label="Sort consultations by"
 								>
 									<option value="date">Date</option>
 									<option value="priority">Priority</option>
@@ -581,10 +595,10 @@ export const ConsultingDoctorDashboard: React.FC<
 
 					{/* Tab Content */}
 					{activeTab === "my_questions" && (
-						<div className="space-y-4">
+						<div className="space-y-3 sm:space-y-4">
 							{filteredMyQuestions.length === 0 ? (
-								<div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
-									<p className="text-gray-400">
+								<div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 text-center">
+									<p className="text-gray-400 text-sm">
 										{myQuestions.length === 0
 											? "You haven't asked any questions yet."
 											: "No consultations match your current filters."}
@@ -609,10 +623,10 @@ export const ConsultingDoctorDashboard: React.FC<
 					)}
 
 					{activeTab === "received" && (
-						<div className="space-y-4">
+						<div className="space-y-3 sm:space-y-4">
 							{filteredReceivedConsultations.length === 0 ? (
-								<div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
-									<p className="text-gray-400">
+								<div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 text-center">
+									<p className="text-gray-400 text-sm">
 										{receivedConsultations.length === 0
 											? "No questions received via code or link yet."
 											: "No consultations match your current filters."}
@@ -637,34 +651,40 @@ export const ConsultingDoctorDashboard: React.FC<
 					)}
 				</div>
 
-				{/* Quick Actions */}
-				<div className="grid grid-cols-2 gap-4">
+				{/* Quick Actions - Mobile Stacked */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
 					<button
 						onClick={() => notImplemented("View Specialists")}
-						className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-4 text-left transition-colors"
+						className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 sm:p-4 text-left transition-colors"
 					>
-						<div className="flex items-center gap-3 mb-2">
-							<User className="text-blue-400" size={20} />
-							<span className="font-medium">
+						<div className="flex items-center gap-2 sm:gap-3 mb-2">
+							<User
+								className="text-blue-400 flex-shrink-0"
+								size={18}
+							/>
+							<span className="font-medium text-sm sm:text-base">
 								Available Specialists
 							</span>
 						</div>
-						<p className="text-sm text-gray-400">
+						<p className="text-xs sm:text-sm text-gray-400">
 							View online specialists by specialty
 						</p>
 					</button>
 
 					<button
 						onClick={() => notImplemented("Medical Resources")}
-						className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-4 text-left transition-colors"
+						className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 sm:p-4 text-left transition-colors"
 					>
-						<div className="flex items-center gap-3 mb-2">
-							<AlertCircle className="text-green-400" size={20} />
-							<span className="font-medium">
+						<div className="flex items-center gap-2 sm:gap-3 mb-2">
+							<AlertCircle
+								className="text-green-400 flex-shrink-0"
+								size={18}
+							/>
+							<span className="font-medium text-sm sm:text-base">
 								Medical Resources
 							</span>
 						</div>
-						<p className="text-sm text-gray-400">
+						<p className="text-xs sm:text-sm text-gray-400">
 							Emergency protocols and references
 						</p>
 					</button>
