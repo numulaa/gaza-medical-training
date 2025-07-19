@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,8 +6,27 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#dc2626" />
-    <meta name="description" content="Emergency medical consultations for war zones and low-connectivity environments" />
+    <meta
+      name="description"
+      content="Emergency medical consultations for war zones and low-connectivity environments" />
     <title>MedConnect Emergency</title>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCpGwK5d2pBI_xkNy66fjemxBF797KGBnk",
+        authDomain: "doctors-connect-be573.firebaseapp.com",
+        projectId: "doctors-connect-be573",
+        storageBucket: "doctors-connect-be573.firebasestorage.app",
+        messagingSenderId: "869626308470",
+        appId: "1:869626308470:web:24ae0a18ed7eca77c03c57",
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"></script>
   </head>
   <body>
     <div id="root"></div>
