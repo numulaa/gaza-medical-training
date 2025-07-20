@@ -16,6 +16,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     role: 'consulting_doctor' as 'consulting_doctor' | 'specialist',
     specialty: '',
     location: '',
+    // whatsappNo: '',
+    // medicalLicenseNo: '',
     experience: ''
   });
   const [isLoading, setIsLoading] = useState(false);

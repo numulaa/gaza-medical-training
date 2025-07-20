@@ -8,6 +8,8 @@ export interface User {
   location?: string;
   experience?: string;
   availabilityStatus: 'available' | 'busy' | 'offline';
+  whatsappNo?: string ,
+  medicalLicenseNo?: string,
 }
 
 export interface Consultation {
