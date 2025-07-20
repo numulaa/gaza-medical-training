@@ -76,33 +76,34 @@ app.post("/whatsapp", async (req, res) => {
       session.case.patient_age = age;
       session.step = "media";
       twiml.message(
-        'You can now send any *images* or *voice notes*. Reply "done" when finished.'
+        'You can now send any *images* or *voice notes* (audio recordings). Send them now, and reply "done" when finished.'
       );
     } else {
       twiml.message("Please enter a valid *age* (number).");
     }
+
+    // 4. Collect media (images/voice notes)
   } else if (session.step === "media") {
     if (numMedia > 0) {
       session.case.media = session.case.media || [];
       session.case.media = session.case.media.concat(media);
-
-      for (let item of media) {
+        for (let item of media) {
         const mediaUrl = await uploadImage(item);
         mediaUrls.push(mediaUrl);
       }
 
       twiml.message(
-        'Media received! You can send more, or reply "done" to finish.'
+        'Media received! You can send more images or voice notes, or reply "done" to finish.'
       );
     } else if (req.body.Body && req.body.Body.trim().toLowerCase() === "done") {
       session.step = "confirmation";
-
-      const imageCount =
-        session.case.media?.filter((m) => m.type.startsWith("image/")).length ||
-        0;
-      const audioCount =
-        session.case.media?.filter((m) => m.type.startsWith("audio/")).length ||
-        0;
+      // Build summary
+      const imageCount = Array.isArray(session.case.media)
+        ? session.case.media.filter((m) => m.type.startsWith("image/")).length
+        : 0;
+      const audioCount = Array.isArray(session.case.media)
+        ? session.case.media.filter((m) => m.type.startsWith("audio/")).length
+        : 0;
 
       const summary = `*Your Case Has Been Submitted!*
 
@@ -112,7 +113,7 @@ app.post("/whatsapp", async (req, res) => {
 *Images:* ${imageCount}
 *Voice notes:* ${audioCount}
 
-Track or add more info here:
+You can track or add more info here:
 ${session.caseLink}
 
 Reply 'restart' to create another case.`;
