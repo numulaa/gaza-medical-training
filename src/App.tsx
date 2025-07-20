@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { LoginForm } from "./components/Auth/LoginForm";
 import { RegisterForm } from "./components/Auth/RegisterForm";
-import { ConsultationThread } from "./components/Consultation/ConsultationThread";
+
+import ConsultationThread from "./components/Consultation/ConsultationThread";
 import { ConsultingDoctorDashboard } from "./components/Dashboard/ConsultingDoctorDashboard";
 import { JoinConsultationForm } from "./components/JoinConsultation/JoinConsultationForm";
 import LandingPage from "./components/LandingPage";

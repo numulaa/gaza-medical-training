@@ -9,16 +9,13 @@ import {
 	User,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { getPriorityColor, getPriorityIcon } from "../../lib/utils";
 import {
 	ConnectionStatus,
 	Consultation,
 	Response,
 	User as UserType,
 } from "../../types";
-import {
-	getPriorityColor,
-	getPriorityIcon,
-} from "../Dashboard/SpecialistDashboard";
 
 interface ConsultationThreadProps {
 	consultation: Consultation;
@@ -28,23 +25,9 @@ interface ConsultationThreadProps {
 	onSendResponse: (content: string) => void;
 	onMarkResolved: () => void;
 	notImplemented: (feature: string) => void;
-	consultation: Consultation;
-	currentUser: UserType;
-	connectionStatus: ConnectionStatus;
-	onBack: () => void;
-	onSendResponse: (content: string) => void;
-	onMarkResolved: () => void;
-	notImplemented: (feature: string) => void;
 }
 
-export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
-	consultation,
-	currentUser,
-	connectionStatus,
-	onBack,
-	onSendResponse,
-	onMarkResolved,
-	notImplemented,
+const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 	consultation,
 	currentUser,
 	connectionStatus,
@@ -53,9 +36,6 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 	onMarkResolved,
 	notImplemented,
 }) => {
-	const [newResponse, setNewResponse] = useState("");
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const [newResponse, setNewResponse] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -71,9 +51,6 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 		scrollToBottom();
 	}, [consultation.responses]);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!newResponse.trim() || isSubmitting) return;
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!newResponse.trim() || isSubmitting) return;
@@ -131,6 +108,7 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 			<div className="bg-gray-800 border-b border-gray-700 p-4 flex-shrink-0">
 				<div className="flex items-center gap-3 mb-4">
 					<button
+						title="back"
 						onClick={onBack}
 						className="text-gray-400 hover:text-white transition-colors"
 					>
@@ -278,6 +256,7 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 														📎 {attachment.name}
 													</span>
 													<button
+														title="uploadAttachement"
 														onClick={() =>
 															notImplemented(
 																"View Attachment"
@@ -531,3 +510,5 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 		</div>
 	);
 };
+
+export default ConsultationThread;

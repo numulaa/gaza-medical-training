@@ -1,5 +1,6 @@
 import { AlertCircle, Clock, Hash, LogOut, Plus, User } from "lucide-react";
 import React, { useState } from "react";
+import { getPriorityColor, getPriorityIcon } from "../../lib/utils";
 import {
 	ConnectionStatus as ConnectionStatusType,
 	Consultation,
@@ -7,9 +8,8 @@ import {
 	User as UserType,
 } from "../../types";
 import { ConnectionStatus } from "../ConnectionStatus";
-import { ConsultationThread } from "../Consultation/ConsultationThread";
+import ConsultationThread from "../Consultation/ConsultationThread";
 import { NewConsultationForm } from "./NewConsultationForm";
-import { getPriorityColor, getPriorityIcon } from "./SpecialistDashboard";
 
 interface ConsultingDoctorDashboardProps {
 	user: UserType;
@@ -155,18 +155,20 @@ export const ConsultingDoctorDashboard: React.FC<
 				case "date":
 					comparison = a.createdAt.getTime() - b.createdAt.getTime();
 					break;
-				case "priority":
+				case "priority": {
 					const priorityOrder = {
 						emergency: 0,
 						serious: 1,
 						standard: 2,
 					};
+
 					comparison =
 						priorityOrder[
 							a.priority as keyof typeof priorityOrder
 						] -
 						priorityOrder[b.priority as keyof typeof priorityOrder];
 					break;
+				}
 				case "specialty":
 					comparison = a.specialty.localeCompare(b.specialty);
 					break;
@@ -506,6 +508,7 @@ export const ConsultingDoctorDashboard: React.FC<
 									Sort By
 								</label>
 								<select
+									title="sort"
 									value={sortBy}
 									onChange={(e) =>
 										setSortBy(e.target.value as any)
@@ -525,6 +528,7 @@ export const ConsultingDoctorDashboard: React.FC<
 									Order
 								</label>
 								<select
+									title="sortOrder"
 									value={sortOrder}
 									onChange={(e) =>
 										setSortOrder(e.target.value as any)
@@ -542,6 +546,7 @@ export const ConsultingDoctorDashboard: React.FC<
 									Priority
 								</label>
 								<select
+									title="filterPriority"
 									value={filterPriority}
 									onChange={(e) =>
 										setFilterPriority(e.target.value as any)
@@ -587,6 +592,7 @@ export const ConsultingDoctorDashboard: React.FC<
 									Status
 								</label>
 								<select
+									title="filter"
 									value={filterStatus}
 									onChange={(e) =>
 										setFilterStatus(e.target.value as any)

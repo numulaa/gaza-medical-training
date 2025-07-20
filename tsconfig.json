@@ -1,8 +1,4 @@
 {
-	"compilerOptions": {
-		"strict": true,
-		"module": "commonjs"
-	},
 	"exclude": ["node_modules"],
 	"files": [],
 	"references": [
@@ -10,9 +6,19 @@
 		{ "path": "./tsconfig.node.json" }
 	],
 	"compilerOptions": {
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
 		"baseUrl": "./src",
 		"paths": {
 			"@/*": ["./*"]
+		}
+	},
+	"eslintConfig": {
+		"rules": {
+			"no-unused-vars": 0,
+			"no-explicit-any": 0,
+			"@typescript-eslint/no-explicit-any": 0,
+			"@typescript-eslint/no-unused-vars": 0
 		}
 	}
 }

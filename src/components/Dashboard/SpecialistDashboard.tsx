@@ -7,6 +7,7 @@ import {
 	User,
 } from "lucide-react";
 import React, { useState } from "react";
+import { getPriorityColor, getPriorityIcon } from "../../lib/utils";
 import {
 	ConnectionStatus as ConnectionStatusType,
 	Consultation,
@@ -14,25 +15,7 @@ import {
 	User as UserType,
 } from "../../types";
 import { ConnectionStatus } from "../ConnectionStatus";
-import { ConsultationThread } from "../Consultation/ConsultationThread";
-
-export const getPriorityIcon = (priority: string) => {
-	return priority === "emergency"
-		? "🔴"
-		: priority === "serious"
-		? "🔵"
-		: "🟢";
-};
-export const getPriorityColor = (priority: string) => {
-	switch (priority) {
-		case "emergency":
-			return "text-red-400 bg-red-900/20 border-red-500/30";
-		case "serious":
-			return "text-blue-400 bg-blue-700/20 border-blue-500/30";
-		default:
-			return "text-green-400 bg-green-900/20 border-green-500/30";
-	}
-};
+import ConsultationThread from "../Consultation/ConsultationThread";
 
 interface SpecialistDashboardProps {
 	user: UserType;
