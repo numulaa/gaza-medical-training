@@ -1,364 +1,521 @@
-import React, { useState } from 'react';
-import { User, LogOut, MessageSquare, Clock, CheckCircle, AlertTriangle, Hash, Plus} from 'lucide-react';
-import { User as UserType, Consultation } from '../../types';
-import { ConnectionStatus } from '../ConnectionStatus';
-import { ConnectionStatus as ConnectionStatusType } from '../../types';
-import { ConsultationThread } from '../Consultation/ConsultationThread';
+import {
+	AlertTriangle,
+	CheckCircle,
+	Clock,
+	LogOut,
+	MessageSquare,
+	User,
+} from "lucide-react";
+import React, { useState } from "react";
+import { getPriorityColor, getPriorityIcon } from "../../lib/utils";
+import {
+	ConnectionStatus as ConnectionStatusType,
+	Consultation,
+	SPECIALTIES,
+	User as UserType,
+} from "../../types";
+import { ConnectionStatus } from "../ConnectionStatus";
+import ConsultationThread from "../Consultation/ConsultationThread";
 
 interface SpecialistDashboardProps {
-  user: UserType;
-  connectionStatus: ConnectionStatusType;
-  onLogout: () => void;
-  notImplemented: (feature: string) => void;
+	user: UserType;
+	connectionStatus: ConnectionStatusType;
+	onLogout: () => void;
+	notImplemented: (feature: string) => void;
 }
 
 export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
-  user,
-  connectionStatus,
-  onLogout,
-  notImplemented
+	user,
+	connectionStatus,
+	onLogout,
+	notImplemented,
 }) => {
-  const [availabilityStatus, setAvailabilityStatus] = useState<'available' | 'busy' | 'offline'>('available');
-  const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
-  const [consultations] = useState<Consultation[]>([
-    {
-      id: '1',
-      title: 'Chest trauma - 23M soldier',
-      description: 'Shrapnel wound to chest, difficulty breathing, BP 90/60. Patient conscious but in distress.',
-      specialty: 'Trauma Surgery',
-      priority: 'emergency',
-      status: 'open',
-      createdBy: 'field_doc_1',
-      createdByName: 'Dr. Ahmad',
-      createdAt: new Date(Date.now() - 2 * 60 * 1000),
-      updatedAt: new Date(),
-      responses: [],
-      source: 'whatsapp'
-    },
-    {
-      id: '2',
-      title: 'Pediatric fever - 5yr old',
-      description: 'High fever 39.5°C for 2 days, no obvious infection source, mild dehydration',
-      specialty: 'Pediatrics',
-      priority: 'urgent',
-      status: 'in_progress',
-      createdBy: 'field_doc_2',
-      createdByName: 'Dr. Sarah',
-      createdAt: new Date(Date.now() - 15 * 60 * 1000),
-      updatedAt: new Date(Date.now() - 5 * 60 * 1000),
-      responses: [{ 
-        id: '1', 
-        consultationId: '2', 
-        userId: user.id, 
-        userName: user.name, 
-        content: 'Please check CBC and blood culture. Monitor for signs of dehydration and consider IV fluids if oral intake is poor.', 
-        createdAt: new Date(Date.now() - 3 * 60 * 1000),
-        source: 'web'
-      }],
-      source: 'web'
-    },
-    {
-      id: '3',
-      title: 'Cardiac arrhythmia - 45F',
-      description: 'Irregular heartbeat, chest pain, history of hypertension',
-      specialty: 'Cardiology',
-      priority: 'standard',
-      status: 'resolved',
-      createdBy: 'field_doc_3',
-      createdByName: 'Dr. Maria',
-      createdAt: new Date(Date.now() - 60 * 60 * 1000),
-      updatedAt: new Date(Date.now() - 30 * 60 * 1000),
-      responses: [
-        { 
-          id: '2', 
-          consultationId: '3', 
-          userId: user.id, 
-          userName: user.name, 
-          content: 'Start metoprolol 25mg BID. Monitor BP and heart rate. If symptoms persist, consider ECG.', 
-          createdAt: new Date(Date.now() - 45 * 60 * 1000),
-          source: 'web'
-        },
-        { 
-          id: '3', 
-          consultationId: '3', 
-          userId: 'field_doc_3', 
-          userName: 'Dr. Maria', 
-          content: 'Thank you, treatment initiated. Patient stable, HR normalized.', 
-          createdAt: new Date(Date.now() - 30 * 60 * 1000),
-          source: 'whatsapp'
-        }
-      ],
-      source: 'web'
-    }
-  ]);
+	const [availabilityStatus, setAvailabilityStatus] = useState<
+		"available" | "busy" | "offline"
+	>("available");
+	const [selectedConsultation, setSelectedConsultation] =
+		useState<Consultation | null>(null);
+	const [consultations] = useState<Consultation[]>([
+		{
+			id: "1",
+			title: "Chest trauma - 23M soldier",
+			description:
+				"Shrapnel wound to chest, difficulty breathing, BP 90/60. Patient conscious but in distress.",
+			specialty: "Trauma Surgery",
+			priority: "emergency",
+			status: "open",
+			createdBy: "field_doc_1",
+			createdByName: "Dr. Ahmad",
+			createdAt: new Date(Date.now() - 2 * 60 * 1000),
+			updatedAt: new Date(),
+			responses: [],
+			source: "whatsapp",
+		},
+		{
+			id: "2",
+			title: "Pediatric fever - 5yr old",
+			description:
+				"High fever 39.5°C for 2 days, no obvious infection source, mild dehydration",
+			specialty: "Pediatrics",
+			priority: "serious",
+			status: "in_progress",
+			createdBy: "field_doc_2",
+			createdByName: "Dr. Sarah",
+			createdAt: new Date(Date.now() - 15 * 60 * 1000),
+			updatedAt: new Date(Date.now() - 5 * 60 * 1000),
+			responses: [
+				{
+					id: "1",
+					consultationId: "2",
+					userId: user.id,
+					userName: user.name,
+					content:
+						"Please check CBC and blood culture. Monitor for signs of dehydration and consider IV fluids if oral intake is poor.",
+					createdAt: new Date(Date.now() - 3 * 60 * 1000),
+					source: "web",
+				},
+			],
+			source: "web",
+		},
+		{
+			id: "3",
+			title: "Cardiac arrhythmia - 45F",
+			description:
+				"Irregular heartbeat, chest pain, history of hypertension",
+			specialty: "Cardiology",
+			priority: "standard",
+			status: "resolved",
+			createdBy: "field_doc_3",
+			createdByName: "Dr. Maria",
+			createdAt: new Date(Date.now() - 60 * 60 * 1000),
+			updatedAt: new Date(Date.now() - 30 * 60 * 1000),
+			responses: [
+				{
+					id: "2",
+					consultationId: "3",
+					userId: user.id,
+					userName: user.name,
+					content:
+						"Start metoprolol 25mg BID. Monitor BP and heart rate. If symptoms persist, consider ECG.",
+					createdAt: new Date(Date.now() - 45 * 60 * 1000),
+					source: "web",
+				},
+				{
+					id: "3",
+					consultationId: "3",
+					userId: "field_doc_3",
+					userName: "Dr. Maria",
+					content:
+						"Thank you, treatment initiated. Patient stable, HR normalized.",
+					createdAt: new Date(Date.now() - 30 * 60 * 1000),
+					source: "whatsapp",
+				},
+			],
+			source: "web",
+		},
+	]);
 
-  const filteredConsultations = consultations.filter(c => 
-    c.specialty === user.specialty || user.specialty === 'General Medicine'
-  );
+	const filteredConsultations = consultations.filter(
+		(c) =>
+			c.specialty === user.specialty ||
+			user.specialty === "General Medicine"
+	);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'emergency': return 'text-red-400 bg-red-900/20 border-red-500/30';
-      case 'urgent': return 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30';
-      default: return 'text-green-400 bg-green-900/20 border-green-500/30';
-    }
-  };
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case "open":
+				return "bg-blue-900/20 text-blue-400";
+			case "in_progress":
+				return "bg-yellow-900/20 text-yellow-400";
+			case "resolved":
+				return "bg-green-900/20 text-green-400";
+			default:
+				return "bg-gray-900/20 text-gray-400";
+		}
+	};
 
-  const getPriorityIcon = (priority: string) => {
-    return priority === 'emergency' ? '🔴' : priority === 'urgent' ? '🟡' : '🟢';
-  };
+	const formatTimeAgo = (date: Date) => {
+		const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+		if (minutes < 1) return "Just now";
+		if (minutes < 60) return `${minutes} min ago`;
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) return `${hours} hr ago`;
+		return `${Math.floor(hours / 24)} days ago`;
+	};
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'bg-blue-900/20 text-blue-400';
-      case 'in_progress': return 'bg-yellow-900/20 text-yellow-400';
-      case 'resolved': return 'bg-green-900/20 text-green-400';
-      default: return 'bg-gray-900/20 text-gray-400';
-    }
-  };
+	const getAvailabilityColor = () => {
+		switch (availabilityStatus) {
+			case "available":
+				return "bg-green-600";
+			case "busy":
+				return "bg-yellow-600";
+			case "offline":
+				return "bg-gray-600";
+		}
+	};
 
-  const formatTimeAgo = (date: Date) => {
-    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes} min ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hr ago`;
-    return `${Math.floor(hours / 24)} days ago`;
-  };
+	const handleSendResponse = async (content: string) => {
+		// Simulate sending response
+		notImplemented("Send Response");
+	};
 
-  const getAvailabilityColor = () => {
-    switch (availabilityStatus) {
-      case 'available': return 'bg-green-600';
-      case 'busy': return 'bg-yellow-600';
-      case 'offline': return 'bg-gray-600';
-    }
-  };
+	const handleMarkResolved = () => {
+		notImplemented("Mark Consultation as Resolved");
+	};
 
-  const handleSendResponse = async (content: string) => {
-    // Simulate sending response
-    notImplemented('Send Response');
-  };
+	if (selectedConsultation) {
+		return (
+			<ConsultationThread
+				consultation={selectedConsultation}
+				currentUser={user}
+				connectionStatus={connectionStatus}
+				onBack={() => setSelectedConsultation(null)}
+				onSendResponse={handleSendResponse}
+				onMarkResolved={handleMarkResolved}
+				notImplemented={notImplemented}
+			/>
+		);
+	}
 
-  const handleMarkResolved = () => {
-    notImplemented('Mark Consultation as Resolved');
-  };
+	return (
+		<div className="min-h-screen bg-gray-900 text-white">
+			{/* Header - Mobile First until 716px */}
+			<div className="bg-gray-800 border-b border-gray-700 p-3 sm:p-4">
+				<div className="flex flex-col space-y-3 mobile:flex-row mobile:items-center mobile:justify-between mobile:space-y-0 mb-3 sm:mb-4">
+					<div className="flex items-center gap-3">
+						<div className="relative flex-shrink-0">
+							<User className="text-red-500" size={20} />
+							<div
+								className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full ${getAvailabilityColor()}`}
+							></div>
+						</div>
+						<div className="min-w-0 flex-1">
+							<h1 className="text-base sm:text-lg font-semibold truncate">
+								Dr. {user.name}
+							</h1>
+							<p className="text-xs sm:text-sm text-gray-400 truncate">
+								{
+									SPECIALTIES.find(
+										(s) => s.value === user.specialty
+									)?.emoji
+								}{" "}
+								{user.specialty} Specialist
+							</p>
+						</div>
+						<div className="flex items-center gap-2 flex-shrink-0">
+							<ConnectionStatus status={connectionStatus} />
+							{/* Mobile Logout - Next to connection status */}
+							<button
+								onClick={onLogout}
+								className="flex items-center justify-center gap-1 px-2 py-1 text-gray-400 hover:text-white transition-colors mobile:hidden"
+							>
+								<LogOut size={16} />
+								<span className="text-sm">Logout</span>
+							</button>
+						</div>
+					</div>
+					<div className="flex flex-col space-y-2 mobile:flex-row mobile:items-center mobile:space-y-0 mobile:space-x-4">
+						<select
+							title="Availability Status"
+							value={availabilityStatus}
+							onChange={(e) =>
+								setAvailabilityStatus(
+									e.target.value as
+										| "available"
+										| "busy"
+										| "offline"
+								)
+							}
+							className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-red-500 w-full mobile:w-auto"
+						>
+							<option value="available">Available</option>
+							<option value="busy">Busy</option>
+							<option value="offline">Offline</option>
+						</select>
+						{/* Desktop Logout - Next to availability dropdown */}
+						<button
+							onClick={onLogout}
+							className="hidden mobile:flex items-center justify-center gap-2 px-3 py-2 text-gray-300 hover:text-white transition-colors"
+						>
+							<LogOut size={16} />
+							<span className="text-sm">Logout</span>
+						</button>
+					</div>
+				</div>
 
-  if (selectedConsultation) {
-    return (
-      <ConsultationThread
-        consultation={selectedConsultation}
-        currentUser={user}
-        connectionStatus={connectionStatus}
-        onBack={() => setSelectedConsultation(null)}
-        onSendResponse={handleSendResponse}
-        onMarkResolved={handleMarkResolved}
-        notImplemented={notImplemented}
-      />
-    );
-  }
+				<ConnectionStatus status={connectionStatus} />
+			</div>
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header - Mobile First until 716px */}
-      <div className="bg-gray-800 border-b border-gray-700 p-3 sm:p-4">
-        <div className="flex flex-col space-y-3 mobile:flex-row mobile:items-center mobile:justify-between mobile:space-y-0 mb-3 sm:mb-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-shrink-0">
-              <User className="text-red-500" size={20} />
-              <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full ${getAvailabilityColor()}`}></div>
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-lg font-semibold truncate">Dr. {user.name}</h1>
-              <p className="text-xs sm:text-sm text-gray-400 truncate">{user.specialty} Specialist</p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <ConnectionStatus status={connectionStatus} />
-              {/* Mobile Logout - Next to connection status */}
-              <button
-                onClick={onLogout}
-                className="flex items-center justify-center gap-1 px-2 py-1 text-gray-400 hover:text-white transition-colors mobile:hidden"
-              >
-                <LogOut size={16} />
-                <span className="text-sm">Logout</span>
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-2 mobile:flex-row mobile:items-center mobile:space-y-0 mobile:space-x-4">
-            <select
-              value={availabilityStatus}
-              onChange={(e) => setAvailabilityStatus(e.target.value as any)}
-              className="bg-gray-700 border border-gray-600 rounded px-3 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-red-500 w-full mobile:w-auto"
-            >
-              <option value="available">Available</option>
-              <option value="busy">Busy</option>
-              <option value="offline">Offline</option>
-            </select>
-            {/* Desktop Logout - Next to availability dropdown */}
-            <button
-              onClick={onLogout}
-              className="hidden mobile:flex items-center justify-center gap-2 px-3 py-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <LogOut size={16} />
-              <span className="text-sm">Logout</span>
-            </button>
-          </div>
-        </div>
-        
-        <ConnectionStatus status={connectionStatus} />
-      </div>
+			<div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
+				{/* Notifications */}
+				<div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 sm:p-4">
+					<div className="flex items-center gap-2 mb-2">
+						<MessageSquare
+							className="text-blue-400 flex-shrink-0"
+							size={18}
+						/>
+						<span className="font-medium text-blue-400 text-sm sm:text-base">
+							Notifications: 3 new consultations
+						</span>
+					</div>
+					<p className="text-xs sm:text-sm text-gray-300">
+						{connectionStatus.isOnline
+							? "Real-time sync active"
+							: "Offline mode - will sync when connected"}
+					</p>
+				</div>
 
-      <div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
-        {/* Notifications */}
-        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 sm:p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <MessageSquare className="text-blue-400 flex-shrink-0" size={18} />
-            <span className="font-medium text-blue-400 text-sm sm:text-base">Notifications: 3 new consultations</span>
-          </div>
-          <p className="text-xs sm:text-sm text-gray-300">
-            {connectionStatus.isOnline ? 'Real-time sync active' : 'Offline mode - will sync when connected'}
-          </p>
-        </div>
+				{/* Active Consultations Summary - Mobile Stacked */}
+				<div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+					<div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 sm:p-4 text-center">
+						<div className="text-xl sm:text-2xl font-bold text-red-400 mb-1">
+							{
+								filteredConsultations.filter(
+									(c) =>
+										c.priority === "emergency" &&
+										c.status !== "resolved"
+								).length
+							}
+						</div>
+						<div className="text-xs sm:text-sm text-red-300">
+							Emergency
+						</div>
+					</div>
+					<div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 sm:p-4 text-center">
+						<div className="text-xl sm:text-2xl font-bold text-blue-400 mb-1">
+							{
+								filteredConsultations.filter(
+									(c) =>
+										c.priority === "serious" &&
+										c.status !== "resolved"
+								).length
+							}
+						</div>
+						<div className="text-xs sm:text-sm text-blue-300">
+							Serious
+						</div>
+					</div>
+					<div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 sm:p-4 text-center">
+						<div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">
+							{
+								filteredConsultations.filter(
+									(c) => c.status === "resolved"
+								).length
+							}
+						</div>
+						<div className="text-xs sm:text-sm text-green-300">
+							Resolved Today
+						</div>
+					</div>
+				</div>
 
-        {/* Active Consultations Summary - Mobile Stacked */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-red-400 mb-1">
-              {filteredConsultations.filter(c => c.priority === 'emergency' && c.status !== 'resolved').length}
-            </div>
-            <div className="text-xs sm:text-sm text-red-300">Emergency</div>
-          </div>
-          <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-yellow-400 mb-1">
-              {filteredConsultations.filter(c => c.priority === 'urgent' && c.status !== 'resolved').length}
-            </div>
-            <div className="text-xs sm:text-sm text-yellow-300">Urgent</div>
-          </div>
-          <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">
-              {filteredConsultations.filter(c => c.status === 'resolved').length}
-            </div>
-            <div className="text-xs sm:text-sm text-green-300">Resolved Today</div>
-          </div>
-        </div>
+				{/* Consultation List */}
+				<div className="space-y-3 sm:space-y-4">
+					<h3 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
+						<MessageSquare size={18} />
+						Active Consultations
+					</h3>
 
-        {/* Consultation List */}
-        <div className="space-y-3 sm:space-y-4">
-          <h3 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
-            <MessageSquare size={18} />
-            Active Consultations
-          </h3>
-          
-          {filteredConsultations
-            .sort((a, b) => {
-              // Sort by priority (emergency first) then by creation time
-              const priorityOrder = { emergency: 0, urgent: 1, standard: 2 };
-              if (priorityOrder[a.priority as keyof typeof priorityOrder] !== priorityOrder[b.priority as keyof typeof priorityOrder]) {
-                return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
-              }
-              return b.createdAt.getTime() - a.createdAt.getTime();
-            })
-            .map(consultation => (
-            <div key={consultation.id} className={`bg-gray-800 border rounded-lg p-3 sm:p-4 ${getPriorityColor(consultation.priority)}`}>
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 sm:mb-3">
-                <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                  <span className="text-sm">{getPriorityIcon(consultation.priority)}</span>
-                  <span className="text-xs sm:text-sm font-medium">{consultation.specialty}</span>
-                  <span className={`px-2 py-1 rounded text-xs ${getStatusColor(consultation.status)}`}>
-                    {consultation.status.replace('_', ' ')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <Clock size={12} />
-                  {formatTimeAgo(consultation.createdAt)}
-                </div>
-              </div>
-              
-              <h4 className="font-medium text-white mb-2 text-sm sm:text-base">{consultation.title}</h4>
-              <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">{consultation.description}</p>
-              
-              {consultation.responses.length > 0 && (
-                <div className="bg-gray-700/50 rounded p-2 sm:p-3 mb-3">
-                  <div className="text-xs text-gray-400 mb-1">Latest Response:</div>
-                  <div className="text-xs sm:text-sm text-gray-200">
-                    "{consultation.responses[consultation.responses.length - 1].content}"
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex flex-row items-center justify-between space-y-0">
-                <div className="flex items-center gap-2 sm:gap-4 text-xs flex-wrap">
-                  {consultation.responses.length > 0 && (
-                    <span className="text-gray-400">
-                      {consultation.responses.length} response{consultation.responses.length !== 1 ? 's' : ''}
-                    </span>
-                  )}
-                  {consultation.accessCode && (
-                    <span className="bg-purple-600 text-white px-2 py-1 rounded">
-                      Code: {consultation.accessCode}
-                    </span>
-                  )}
-                  {consultation.status !== 'resolved' && (
-                    <span className="text-yellow-400 flex items-center gap-1">
-                      <AlertTriangle size={12} />
-                      Awaiting response
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                  {consultation.status === 'resolved' ? (
-                    <button
-                      onClick={() => notImplemented('View Resolved Thread')}
-                      className="text-gray-400 hover:text-gray-300 text-xs sm:text-sm font-medium transition-colors"
-                    >
-                      View Thread
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => setSelectedConsultation(consultation)}
-                        className="bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm transition-colors"
-                      >
-                        Respond
-                      </button>
-                      <button
-                        onClick={() => setSelectedConsultation(consultation)}
-                        className="text-red-400 hover:text-red-300 text-xs sm:text-sm font-medium transition-colors"
-                      >
-                        Open Thread →
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+					{filteredConsultations
+						.sort((a, b) => {
+							// Sort by priority (emergency first) then by creation time
+							const priorityOrder = {
+								emergency: 0,
+								serious: 1,
+								standard: 2,
+							};
+							if (
+								priorityOrder[
+									a.priority as keyof typeof priorityOrder
+								] !==
+								priorityOrder[
+									b.priority as keyof typeof priorityOrder
+								]
+							) {
+								return (
+									priorityOrder[
+										a.priority as keyof typeof priorityOrder
+									] -
+									priorityOrder[
+										b.priority as keyof typeof priorityOrder
+									]
+								);
+							}
+							return (
+								b.createdAt.getTime() - a.createdAt.getTime()
+							);
+						})
+						.map((consultation) => (
+							<div
+								key={consultation.id}
+								className={`bg-gray-800 border rounded-lg p-3 sm:p-4 ${getPriorityColor(
+									consultation.priority
+								)}`}
+							>
+								<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 sm:mb-3">
+									<div className="flex items-center gap-2 mb-2 sm:mb-0">
+										<span className="text-sm">
+											{getPriorityIcon(
+												consultation.priority
+											)}
+										</span>
+										<span className="text-xs sm:text-sm font-medium">
+											{
+												SPECIALTIES.find(
+													(s) =>
+														s.value ===
+														consultation.specialty
+												)?.emoji
+											}{" "}
+											{consultation.specialty}
+										</span>
+										<span
+											className={`px-2 py-1 rounded text-xs ${getStatusColor(
+												consultation.status
+											)}`}
+										>
+											{consultation.status.replace(
+												"_",
+												" "
+											)}
+										</span>
+									</div>
+									<div className="flex items-center gap-2 text-xs text-gray-400">
+										<Clock size={12} />
+										{formatTimeAgo(consultation.createdAt)}
+									</div>
+								</div>
 
-        {/* Quick Actions - Mobile Stacked */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <button
-            onClick={() => notImplemented('Medical References')}
-            className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 sm:p-4 text-left transition-colors"
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-              <CheckCircle className="text-green-400 flex-shrink-0" size={18} />
-              <span className="font-medium text-sm sm:text-base">Medical References</span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-400">Quick access to protocols and guidelines</p>
-          </button>
-          
-          <button
-            onClick={() => notImplemented('Case History')}
-            className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 sm:p-4 text-left transition-colors"
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-              <Clock className="text-blue-400 flex-shrink-0" size={18} />
-              <span className="font-medium text-sm sm:text-base">Case History</span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-400">View your previous consultations</p>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+								<h4 className="font-medium text-white mb-2 text-sm sm:text-base">
+									{consultation.title}
+								</h4>
+								<p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+									{consultation.description}
+								</p>
+
+								{consultation.responses.length > 0 && (
+									<div className="bg-gray-700/50 rounded p-2 sm:p-3 mb-3">
+										<div className="text-xs text-gray-400 mb-1">
+											Latest Response:
+										</div>
+										<div className="text-xs sm:text-sm text-gray-200">
+											"
+											{
+												consultation.responses[
+													consultation.responses
+														.length - 1
+												].content
+											}
+											"
+										</div>
+									</div>
+								)}
+
+								<div className="flex flex-row items-center justify-between space-y-0">
+									<div className="flex items-center gap-2 sm:gap-4 text-xs flex-wrap">
+										{consultation.responses.length > 0 && (
+											<span className="text-gray-400">
+												{consultation.responses.length}{" "}
+												response
+												{consultation.responses
+													.length !== 1
+													? "s"
+													: ""}
+											</span>
+										)}
+										{consultation.accessCode && (
+											<span className="bg-purple-600 text-white px-2 py-1 rounded">
+												Code: {consultation.accessCode}
+											</span>
+										)}
+										{consultation.status !== "resolved" && (
+											<span className="text-yellow-400 flex items-center gap-1">
+												<AlertTriangle size={12} />
+												Awaiting response
+											</span>
+										)}
+									</div>
+									<div className="flex items-center gap-2 flex-shrink-0 ml-2">
+										{consultation.status === "resolved" ? (
+											<button
+												onClick={() =>
+													notImplemented(
+														"View Resolved Thread"
+													)
+												}
+												className="text-gray-400 hover:text-gray-300 text-xs sm:text-sm font-medium transition-colors"
+											>
+												View Thread
+											</button>
+										) : (
+											<>
+												<button
+													onClick={() =>
+														setSelectedConsultation(
+															consultation
+														)
+													}
+													className="bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm transition-colors"
+												>
+													Respond
+												</button>
+												<button
+													onClick={() =>
+														setSelectedConsultation(
+															consultation
+														)
+													}
+													className="text-red-400 hover:text-red-300 text-xs sm:text-sm font-medium transition-colors"
+												>
+													Open Thread →
+												</button>
+											</>
+										)}
+									</div>
+								</div>
+							</div>
+						))}
+				</div>
+
+				{/* Quick Actions - Mobile Stacked */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+					<button
+						onClick={() => notImplemented("Medical References")}
+						className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 sm:p-4 text-left transition-colors"
+					>
+						<div className="flex items-center gap-2 sm:gap-3 mb-2">
+							<CheckCircle
+								className="text-green-400 flex-shrink-0"
+								size={18}
+							/>
+							<span className="font-medium text-sm sm:text-base">
+								Medical References
+							</span>
+						</div>
+						<p className="text-xs sm:text-sm text-gray-400">
+							Quick access to protocols and guidelines
+						</p>
+					</button>
+
+					<button
+						onClick={() => notImplemented("Case History")}
+						className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 sm:p-4 text-left transition-colors"
+					>
+						<div className="flex items-center gap-2 sm:gap-3 mb-2">
+							<Clock
+								className="text-blue-400 flex-shrink-0"
+								size={18}
+							/>
+							<span className="font-medium text-sm sm:text-base">
+								Case History
+							</span>
+						</div>
+						<p className="text-xs sm:text-sm text-gray-400">
+							View your previous consultations
+						</p>
+					</button>
+				</div>
+			</div>
+		</div>
+	);
 };

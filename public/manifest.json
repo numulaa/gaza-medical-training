@@ -1,34 +1,28 @@
 {
-  "name": "MedConnect Emergency",
-  "short_name": "MedConnect",
-  "description": "Emergency medical consultations for war zones and low-connectivity environments",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1a1a1a",
-  "theme_color": "#dc2626",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png", 
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "categories": ["medical", "healthcare", "emergency"],
-  "shortcuts": [
-    {
-      "name": "Emergency Consultation",
-      "short_name": "Emergency",
-      "description": "Start emergency consultation",
-      "url": "/emergency",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    }
-  ]
+	"name": "MedConnect Emergency",
+	"short_name": "MedConnect",
+	"description": "Emergency medical consultations for war zones and low-connectivity environments",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#1a1a1a",
+	"theme_color": "#dc2626",
+	"orientation": "portrait",
+	"icons": [
+		{
+			"src": "/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	],
+	"categories": ["medical", "healthcare", "emergency"],
+	"shortcuts": [
+		{
+			"name": "Emergency Consultation",
+			"short_name": "Emergency",
+			"description": "Start emergency consultation",
+			"url": "/emergency",
+			"icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+		}
+	]
 }
