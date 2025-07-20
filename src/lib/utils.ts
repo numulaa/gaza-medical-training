@@ -1,6 +1,8 @@
 import { cva } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+// to do have this be from env
+export const BASE_URL = "http://localhost:3000";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -22,6 +24,7 @@ export const getPriorityColor = (priority: string) => {
 			return "text-green-400 bg-green-900/20 border-green-500/30";
 	}
 };
+
 export const buttonVariants = cva(
 	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
 	{

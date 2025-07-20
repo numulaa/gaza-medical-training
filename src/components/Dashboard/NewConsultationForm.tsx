@@ -1,5 +1,6 @@
 import { Mic, Upload, X } from "lucide-react";
 import React, { useState } from "react";
+import { BASE_URL } from "../../lib/utils";
 import { ConnectionStatus, SPECIALTIES } from "../../types";
 
 interface NewConsultationFormProps {
@@ -20,9 +21,18 @@ export const NewConsultationForm: React.FC<NewConsultationFormProps> = ({
 		priority: "standard",
 	});
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		onSubmit(formData);
+		try {
+			// doctorId should come from auth context; for now, leave as undefined or mock
+			const result = await createConsultation(formData);
+			console.log("Consultation created. Code:", result.code);
+			alert(`Consultation created! Code: ${result.code}`);
+			onSubmit(formData);
+		} catch (err) {
+			console.error("Failed to create consultation", err);
+			alert("Failed to create consultation");
+		}
 	};
 
 	const handleChange = (
@@ -168,4 +178,30 @@ export const NewConsultationForm: React.FC<NewConsultationFormProps> = ({
 			</form>
 		</div>
 	);
+};
+
+// Function to create a consultation via API
+const createConsultation = async (
+	data: {
+		title: string;
+		description: string;
+		specialty: string;
+		priority: string;
+	},
+	doctorId?: string
+) => {
+	if (!doctorId) doctorId = "10000";
+	console.log(data);
+	const response = await fetch(`${BASE_URL}/api/consultations`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Access-Control-Allow-Origin": "http://localhost:3000",
+		},
+		body: JSON.stringify({ ...data, doctorId }),
+	});
+	if (!response.ok) {
+		throw new Error("Failed to create consultation");
+	}
+	return response.json();
 };

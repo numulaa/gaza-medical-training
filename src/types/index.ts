@@ -43,7 +43,7 @@ export interface Response {
 	content: string;
 	createdAt: Date;
 	isOffline?: boolean;
-	source?: "web" | "whatsapp" | "mobile";
+	source?: keyof typeof sourceEnum;
 }
 
 export interface ConnectionStatus {
@@ -67,3 +67,9 @@ export const SPECIALTIES = [
 	{ value: "Surgery", label: "Surgery", emoji: "🔪" },
 	{ value: "General Medicine", label: "General Medicine", emoji: "👨‍⚕️" },
 ];
+export const sourceEnum = {
+	web: "web",
+	whatsapp: "whatsapp",
+
+	mobile: "mobile",
+};
