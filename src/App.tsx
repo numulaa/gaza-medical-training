@@ -12,9 +12,15 @@ import PhoneNumberSignUp from "./components/UserSignUpAuth/PhoneNumberSignUp";
 import { useAuth } from "./hooks/useAuth";
 import { useConnectionStatus } from "./hooks/useConnectionStatus";
 import { useToast } from "./hooks/useToast";
+<<<<<<< HEAD
 import { caseDataProps, Consultation } from "./types";
 import { submitCaseToFirestore } from "./lib/utils";
 import { io } from "socket.io-client";
+=======
+import { Consultation } from "./types";
+import { io } from "socket.io-client";
+import { submitCaseToFirestore } from "./lib/utils";
+>>>>>>> e9b29f3 (chore)
 
 function App() {
   const [currentView, setCurrentView] = useState<"login" | "register" | "join">(
