@@ -43,11 +43,10 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 				"Shrapnel wound to chest, difficulty breathing, BP 90/60. Patient conscious but in distress.",
 			specialty: "Trauma Surgery",
 			priority: "emergency",
-			status: "open",
-			createdBy: "field_doc_1",
-			createdByName: "Dr. Ahmad",
+			status: "pending",
+			code: "CASE-001",
+			doctorId: "field_doc_1",
 			createdAt: new Date(Date.now() - 2 * 60 * 1000),
-			updatedAt: new Date(),
 			responses: [],
 			source: "whatsapp",
 		},
@@ -59,14 +58,12 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 			specialty: "Pediatrics",
 			priority: "serious",
 			status: "in_progress",
-			createdBy: "field_doc_2",
-			createdByName: "Dr. Sarah",
+			code: "CASE-002",
+			doctorId: "field_doc_2",
 			createdAt: new Date(Date.now() - 15 * 60 * 1000),
-			updatedAt: new Date(Date.now() - 5 * 60 * 1000),
 			responses: [
 				{
 					id: "1",
-					consultationId: "2",
 					userId: user.id,
 					userName: user.name,
 					content:
@@ -85,14 +82,12 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 			specialty: "Cardiology",
 			priority: "standard",
 			status: "resolved",
-			createdBy: "field_doc_3",
-			createdByName: "Dr. Maria",
+			code: "CASE-003",
+			doctorId: "field_doc_3",
 			createdAt: new Date(Date.now() - 60 * 60 * 1000),
-			updatedAt: new Date(Date.now() - 30 * 60 * 1000),
 			responses: [
 				{
 					id: "2",
-					consultationId: "3",
 					userId: user.id,
 					userName: user.name,
 					content:
@@ -102,7 +97,6 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 				},
 				{
 					id: "3",
-					consultationId: "3",
 					userId: "field_doc_3",
 					userName: "Dr. Maria",
 					content:
@@ -123,12 +117,14 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
-			case "open":
+			case "pending":
 				return "bg-blue-900/20 text-blue-400";
 			case "in_progress":
 				return "bg-yellow-900/20 text-yellow-400";
 			case "resolved":
 				return "bg-green-900/20 text-green-400";
+			case "closed":
+				return "bg-gray-900/20 text-gray-400";
 			default:
 				return "bg-gray-900/20 text-gray-400";
 		}
@@ -423,9 +419,9 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 													: ""}
 											</span>
 										)}
-										{consultation.accessCode && (
+										{consultation.code && (
 											<span className="bg-purple-600 text-white px-2 py-1 rounded">
-												Code: {consultation.accessCode}
+												Code: {consultation.code}
 											</span>
 										)}
 										{consultation.status !== "resolved" && (

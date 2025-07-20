@@ -18,15 +18,14 @@ export interface Consultation {
 	description: string;
 	specialty: string;
 	priority: "emergency" | "serious" | "standard";
-	status: "open" | "in_progress" | "resolved" | "closed";
-	createdBy: string;
+	status: "pending" | "in_progress" | "resolved" | "closed";
+	code: string;
+	doctorId: string;
 	createdAt: Date;
-	updatedAt: Date;
 	responses: Response[];
 	isOffline?: boolean;
 	source?: "web" | "whatsapp" | "mobile";
 	createdByName?: string;
-	accessCode?: string;
 	attachments?: Array<{
 		id: string;
 		name: string;
@@ -37,10 +36,9 @@ export interface Consultation {
 
 export interface Response {
 	id: string;
-	consultationId: string;
+	content: string;
 	userId: string;
 	userName: string;
-	content: string;
 	createdAt: Date;
 	isOffline?: boolean;
 	source?: "web" | "whatsapp" | "mobile";

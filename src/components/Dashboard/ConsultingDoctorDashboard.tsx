@@ -1,5 +1,5 @@
 import { AlertCircle, Clock, Hash, LogOut, Plus, User } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getPriorityColor, getPriorityIcon } from "../../lib/utils";
 import {
 	ConnectionStatus as ConnectionStatusType,
@@ -39,94 +39,71 @@ export const ConsultingDoctorDashboard: React.FC<
 	const [filterStatus, setFilterStatus] = useState<
 		"all" | "open" | "in_progress" | "resolved"
 	>("all");
-	const [consultations] = useState<Consultation[]>([
-		{
-			id: "1",
-			title: "Chest trauma - 23M soldier",
-			description:
-				"Shrapnel wound to chest, difficulty breathing, BP 90/60",
-			specialty: "Trauma Surgery",
-			priority: "emergency",
-			status: "open",
-			createdBy: user.id,
-			createdByName: user.name,
-			createdAt: new Date(Date.now() - 5 * 60 * 1000),
-			updatedAt: new Date(),
-			responses: [],
-			source: "web",
-		},
-		{
-			id: "2",
-			title: "Pediatric fever - 5yr old",
-			description: "High fever 39.5°C, no obvious infection source",
-			specialty: "Pediatrics",
-			priority: "serious",
-			status: "in_progress",
-			createdBy: user.id,
-			createdByName: user.name,
-			createdAt: new Date(Date.now() - 30 * 60 * 1000),
-			updatedAt: new Date(),
-			responses: [
-				{
-					id: "1",
-					consultationId: "2",
-					userId: "spec1",
-					userName: "Dr. Smith",
-					content:
-						"Please check CBC and blood culture. Monitor for signs of dehydration.",
-					createdAt: new Date(Date.now() - 10 * 60 * 1000),
-					source: "web",
-				},
-			],
-			source: "whatsapp",
-		},
-		{
-			id: "3",
-			title: "Cardiac consultation needed",
-			description:
-				"Patient with chest pain and irregular heartbeat, need cardiology input",
-			specialty: "Cardiology",
-			priority: "serious",
-			status: "open",
-			createdBy: "other_doctor_1",
-			createdByName: "Dr. Hassan",
-			createdAt: new Date(Date.now() - 45 * 60 * 1000),
-			updatedAt: new Date(),
-			responses: [],
-			source: "whatsapp",
-		},
-		{
-			id: "4",
-			title: "Surgical opinion required",
-			description:
-				"Abdominal trauma, possible internal bleeding, need surgical assessment",
-			specialty: "Surgery",
-			priority: "emergency",
-			status: "in_progress",
-			createdBy: "other_doctor_2",
-			createdByName: "Dr. Fatima",
-			createdAt: new Date(Date.now() - 20 * 60 * 1000),
-			updatedAt: new Date(),
-			responses: [
-				{
-					id: "2",
-					consultationId: "4",
-					userId: user.id,
-					userName: user.name,
-					content:
-						"Based on description, recommend immediate surgical exploration. Prepare for emergency laparotomy.",
-					createdAt: new Date(Date.now() - 5 * 60 * 1000),
-					source: "web",
-				},
-			],
-			source: "web",
-		},
-	]);
+	
+	// Real data from API
+	const [consultations, setConsultations] = useState<Consultation[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	
+	// Use logged-in user
+	const currentUserId = user.id;
+
+	// Fetch data from API for logged-in user
+	useEffect(() => {
+		if (!currentUserId) return;
+		
+		const fetchConsultations = async () => {
+			try {
+				setLoading(true);
+				setError(null);
+				
+				// Fetch consultations asked by this user
+				const askedResponse = await fetch(`http://localhost:3000/api/consultations/asked/${currentUserId}`);
+				const askedData = await askedResponse.json();
+				
+				// Fetch consultations received by this user
+				const receivedResponse = await fetch(`http://localhost:3000/api/consultations/received/${currentUserId}`);
+				const receivedData = await receivedResponse.json();
+				
+				// Transform API data to match Consultation interface
+				const transformConsultationData = (consultationData: any): Consultation => ({
+					id: consultationData.id,
+					title: consultationData.title || "Consultation " + consultationData.code,
+					description: consultationData.description,
+					specialty: consultationData.specialty || "General Medicine",
+					priority: consultationData.priority || "standard",
+					status: consultationData.status || "pending",
+					code: consultationData.code,
+					doctorId: consultationData.doctorId,
+					createdAt: consultationData.createdAt ? new Date(consultationData.createdAt.toDate()) : new Date(),
+					responses: consultationData.responses || [],
+					source: consultationData.source || "web"
+				});
+				
+				const askedConsultations = askedData.success ? askedData.consultations.map(transformConsultationData) : [];
+				const receivedConsultations = receivedData.success ? receivedData.consultations.map(transformConsultationData) : [];
+				
+				// Combine all consultations
+				const allConsultations = [...askedConsultations, ...receivedConsultations];
+				
+				console.log("Fetched consultations:", allConsultations);
+				setConsultations(allConsultations);
+				
+			} catch (err) {
+				console.error("Error fetching consultations:", err);
+				setError(err instanceof Error ? err.message : "Failed to fetch consultations");
+			} finally {
+				setLoading(false);
+			}
+		};
+		
+		fetchConsultations();
+	}, [currentUserId, user.name]);
 
 	// Separate consultations by type
-	const myQuestions = consultations.filter((c) => c.createdBy === user.id);
+	const myQuestions = consultations.filter((c) => c.doctorId === currentUserId);
 	const receivedConsultations = consultations.filter(
-		(c) => c.createdBy !== user.id
+		(c) => c.doctorId !== currentUserId
 	);
 
 	// Get unique specialties for filter dropdown
@@ -271,11 +248,13 @@ export const ConsultingDoctorDashboard: React.FC<
 				<div className="flex items-center gap-2 sm:gap-4 text-xs flex-wrap">
 					<span
 						className={`px-2 py-1 rounded ${
-							consultation.status === "open"
+							consultation.status === "pending"
 								? "bg-blue-900/20 text-blue-400"
 								: consultation.status === "in_progress"
 								? "bg-yellow-900/20 text-yellow-400"
-								: "bg-green-900/20 text-green-400"
+								: consultation.status === "resolved"
+								? "bg-green-900/20 text-green-400"
+								: "bg-gray-900/20 text-gray-400"
 						}`}
 					>
 						{consultation.status.replace("_", " ")}
@@ -402,6 +381,28 @@ export const ConsultingDoctorDashboard: React.FC<
 			</div>
 
 			<div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
+				{/* Loading State */}
+				{loading && (
+					<div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 text-center">
+						<p className="text-blue-400">Loading cases from API...</p>
+					</div>
+				)}
+
+				{/* Error State */}
+				{error && (
+					<div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+						<h3 className="text-red-400 font-semibold mb-2">Error Loading Cases</h3>
+						<p className="text-red-300 text-sm">{error}</p>
+						<button 
+							onClick={() => window.location.reload()} 
+							className="mt-2 text-red-400 hover:text-red-300 text-sm"
+						>
+							Retry
+						</button>
+					</div>
+				)}
+
+
 				{/* New Consultation Form */}
 				{showNewConsultation && (
 					<div className="mb-4">
