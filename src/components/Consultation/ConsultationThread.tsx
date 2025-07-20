@@ -28,9 +28,23 @@ interface ConsultationThreadProps {
 	onSendResponse: (content: string) => void;
 	onMarkResolved: () => void;
 	notImplemented: (feature: string) => void;
+	consultation: Consultation;
+	currentUser: UserType;
+	connectionStatus: ConnectionStatus;
+	onBack: () => void;
+	onSendResponse: (content: string) => void;
+	onMarkResolved: () => void;
+	notImplemented: (feature: string) => void;
 }
 
 export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
+	consultation,
+	currentUser,
+	connectionStatus,
+	onBack,
+	onSendResponse,
+	onMarkResolved,
+	notImplemented,
 	consultation,
 	currentUser,
 	connectionStatus,
@@ -42,6 +56,9 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 	const [newResponse, setNewResponse] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const [newResponse, setNewResponse] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -50,7 +67,13 @@ export const ConsultationThread: React.FC<ConsultationThreadProps> = ({
 	useEffect(() => {
 		scrollToBottom();
 	}, [consultation.responses]);
+	useEffect(() => {
+		scrollToBottom();
+	}, [consultation.responses]);
 
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!newResponse.trim() || isSubmitting) return;
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!newResponse.trim() || isSubmitting) return;
