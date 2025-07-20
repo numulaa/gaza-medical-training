@@ -1,31 +1,40 @@
 const express = require("express");
+const http = require("http");
+const multer = require("multer");
+const path = require("path");
+
+const { Server } = require("socket.io");
 const bodyParser = require("body-parser");
+const uploadImage = require("./middleware/cloudinary");
+const { WhatsApp } = require("twilio/lib/twiml/VoiceResponse");
 const { MessagingResponse } = require("twilio").twiml;
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-let messages = [];
-
-// In-memory session store -- use persistent DB for production
-const userSessions = {};
-
-// Health check
-app.get("/", (req, res) => {
-  res.json({
-    status: "WhatsApp Backend Server Running",
-    timestamp: new Date().toISOString(),
-    totalMessages: messages.length,
-  });
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" },
 });
+const upload = multer({ dest: "uploads/" }); // Temporary file storage
+
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const userSessions = {};
 
 const STEPS = ["start", "description", "patient_age", "media", "confirmation"];
 
-app.post("/whatsapp", (req, res) => {
-  const from = req.body.From;
+// Socket.IO
+io.on("connection", (socket) => {
+  console.log("Frontend connected:", socket.id);
+});
 
-  // Initialize or resume user session
+// Twilio WhatsApp Webhook
+app.post("/whatsapp", async (req, res) => {
+  const from = req.body.From;
+  //   const senderPhone = req.body.From; // e.g., "whatsapp:+1234567890"
+  const sourceEnd = from.indexOf(":");
+  const source = from.substring(0, sourceEnd);
+  const whatsapp = from.substring(sourceEnd + 1, from.length);
   if (!userSessions[from]) {
-    // Generate caseId and link at start for this session
     const caseId =
       "CASE-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
     const caseLink = `https://yourpwa.app/case/${caseId}`;
@@ -36,12 +45,13 @@ app.post("/whatsapp", (req, res) => {
       caseLink,
     };
   }
+
   const session = userSessions[from];
   const twiml = new MessagingResponse();
 
-  // Always define numMedia and media array at the top
   const numMedia = parseInt(req.body.NumMedia, 10) || 0;
   const media = [];
+  const mediaUrls = [];
   for (let i = 0; i < numMedia; i++) {
     media.push({
       url: req.body[`MediaUrl${i}`],
@@ -49,12 +59,9 @@ app.post("/whatsapp", (req, res) => {
     });
   }
 
-  // 1. Prompt for description after any first message
   if (session.step === "start") {
     session.step = "description";
     twiml.message("Please enter the *description* of the case.");
-
-    // 2. Collect description
   } else if (session.step === "description") {
     if (req.body.Body && req.body.Body.trim().length > 0) {
       session.case.description = req.body.Body.trim();
@@ -63,140 +70,98 @@ app.post("/whatsapp", (req, res) => {
     } else {
       twiml.message("Please enter the *description* of the case.");
     }
-
-    // 3. Collect patient age
   } else if (session.step === "patient_age") {
     const age = parseInt(req.body.Body, 10);
     if (!isNaN(age) && age > 0 && age < 130) {
       session.case.patient_age = age;
       session.step = "media";
       twiml.message(
-        'You can now send any *images* or *voice notes* (audio recordings). Send them now, and reply "done" when finished.'
+        'You can now send any *images* or *voice notes*. Reply "done" when finished.'
       );
     } else {
       twiml.message("Please enter a valid *age* (number).");
     }
-
-    // 4. Collect media (images/voice notes)
   } else if (session.step === "media") {
     if (numMedia > 0) {
       session.case.media = session.case.media || [];
       session.case.media = session.case.media.concat(media);
+
+      for (let item of media) {
+        const mediaUrl = await uploadImage(item);
+        mediaUrls.push(mediaUrl);
+      }
+
       twiml.message(
-        'Media received! You can send more images or voice notes, or reply "done" to finish.'
+        'Media received! You can send more, or reply "done" to finish.'
       );
     } else if (req.body.Body && req.body.Body.trim().toLowerCase() === "done") {
       session.step = "confirmation";
-      // Build summary
-      const imageCount = Array.isArray(session.case.media)
-        ? session.case.media.filter((m) => m.type.startsWith("image/")).length
-        : 0;
-      const audioCount = Array.isArray(session.case.media)
-        ? session.case.media.filter((m) => m.type.startsWith("audio/")).length
-        : 0;
+
+      const imageCount =
+        session.case.media?.filter((m) => m.type.startsWith("image/")).length ||
+        0;
+      const audioCount =
+        session.case.media?.filter((m) => m.type.startsWith("audio/")).length ||
+        0;
 
       const summary = `*Your Case Has Been Submitted!*
 
 *Case ID:* ${session.caseId}
-
 *Description:* ${session.case.description || "-"}
 *Patient Age:* ${session.case.patient_age}
 *Images:* ${imageCount}
 *Voice notes:* ${audioCount}
 
-You can track or add more info here:
+Track or add more info here:
 ${session.caseLink}
 
 Reply 'restart' to create another case.`;
 
       twiml.message(summary);
-      // Session is done, delete to allow new case
+
+      const caseData = {
+        caseId: session.caseId,
+        description: session.case.description,
+        patientAge: session.case.patient_age,
+        media: mediaUrls || [],
+        link: session.caseLink,
+        from,
+        createdAt: new Date().toISOString(),
+        source: source,
+        whatsAppNo: whatsapp,
+      };
+
+      io.emit("new-case", caseData); // Notify frontend
+
       delete userSessions[from];
     } else {
-      twiml.message(
-        'Please send images/voice notes, or reply "done" to finish.'
-      );
+      twiml.message('Please send media or reply "done" to finish.');
     }
-
-    // 5. Confirmation step isn't needed, send summary directly after 'done'
-    // Optionally, you could implement manual confirmation here
   }
-
-  const message = {
-    id: session.id,
-  };
 
   res.set("Content-Type", "text/xml");
   res.send(twiml.toString());
 });
 
-// API to get unprocessed messages
-app.get("/api/messages/unprocessed", (req, res) => {
-  const unprocessedMessages = messages.filter((msg) => !msg.processed);
-  res.json(unprocessedMessages);
-});
+// Test API to upload image
 
-// API to get all messages
-app.get("/api/messages", (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const start = (page - 1) * limit;
-  const end = start + limit;
+// const storage = multer.memoryStorage(); // stores file in memory
+// const uploadMulter = multer({ storage });
+// app.post("/upload", uploadMulter.single("image"), async (req, res) => {
+//   try {
+//     const base64Image = `data:image/jpeg;base64,${req.file.buffer.toString(
+//       "base64"
+//     )}`;
 
-  const paginatedMessages = messages.slice(start, end);
+//     const result = await uploadImage(base64Image);
 
-  res.json({
-    messages: paginatedMessages,
-    total: messages.length,
-    page,
-    totalPages: Math.ceil(messages.length / limit),
-  });
-});
-
-// API to mark message as processed
-app.patch("/api/messages/:id/processed", (req, res) => {
-  const messageId = parseInt(req.params.id);
-  const { caseId } = req.body;
-
-  const message = messages.find((msg) => msg.id === messageId);
-
-  if (message) {
-    message.processed = true;
-    message.caseCreated = true;
-    message.caseId = caseId;
-    message.processedAt = new Date().toISOString();
-
-    res.json({ success: true, message });
-  } else {
-    res.status(404).json({ error: "Message not found" });
-  }
-});
-
-// API to get specific message
-app.get("/api/messages/:id", (req, res) => {
-  const messageId = parseInt(req.params.id);
-  const message = messages.find((msg) => msg.id === messageId);
-
-  if (message) {
-    res.json(message);
-  } else {
-    res.status(404).json({ error: "Message not found" });
-  }
-});
-
-// API to delete processed messages (cleanup)
-app.delete("/api/messages/cleanup", (req, res) => {
-  const beforeCount = messages.length;
-  messages = messages.filter((msg) => !msg.processed);
-  const afterCount = messages.length;
-
-  res.json({
-    deleted: beforeCount - afterCount,
-    remaining: afterCount,
-  });
-});
+//     res.status(200).json({ message: "Upload successful!", url: result });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });

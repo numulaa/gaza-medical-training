@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "node --watch server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,9 +13,12 @@
   "type": "commonjs",
   "dependencies": {
     "body-parser": "^2.2.0",
+    "cloudinary": "^2.7.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0",
+    "multer": "^2.0.2",
+    "socket.io": "^4.8.1",
     "twilio": "^5.7.3"
   }
 }

@@ -1,9 +1,41 @@
+<<<<<<< HEAD
 import { cva } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
+=======
+import { clsx, type ClassValue } from "clsx";
+import { addDoc, serverTimestamp } from "firebase/firestore";
+import { twMerge } from "tailwind-merge";
+import { responsesCollection } from "./firebase";
+
+interface caseDataProps {
+  caseId: string;
+  description: string;
+  patientAge: string;
+  media: string[];
+  link: string;
+  from: any;
+  createdAt: Date;
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export async function submitCaseToFirestore(caseData: caseDataProps) {
+  try {
+    const docRef = await addDoc(responsesCollection, {
+      ...caseData,
+      timestamp: serverTimestamp(),
+    });
+    console.log("Case stored with ID:", docRef.id);
+  } catch (error) {
+    console.error("Error adding case:", error);
+  }
+>>>>>>> 4fef016 (feat: sync twilio with frontend)
 }
 export const getPriorityIcon = (priority: string) => {
 	return priority === "emergency"

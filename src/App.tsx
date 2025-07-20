@@ -9,10 +9,15 @@ import LandingPage from "./components/LandingPage";
 import { ToastContainer } from "./components/Toast";
 import GoogleSignUp from "./components/UserSignUpAuth/GoogleSignUp";
 import PhoneNumberSignUp from "./components/UserSignUpAuth/PhoneNumberSignUp";
+<<<<<<< HEAD
 import { useAuth } from "./hooks/useAuth";
 import { useConnectionStatus } from "./hooks/useConnectionStatus";
 import { useToast } from "./hooks/useToast";
 import { Consultation } from "./types";
+=======
+import { io } from "socket.io-client";
+import { submitCaseToFirestore } from "./lib/utils";
+>>>>>>> 4fef016 (feat: sync twilio with frontend)
 
 function App() {
 	const [currentView, setCurrentView] = useState<
@@ -69,6 +74,7 @@ function App() {
 		}
 	};
 
+<<<<<<< HEAD
 	const handleRegister = async (userData: any): Promise<boolean> => {
 		try {
 			const success = await register(userData);
@@ -91,6 +97,43 @@ function App() {
 			return false;
 		}
 	};
+=======
+  // Socket connection
+  useEffect(() => {
+    const socket = io("http://localhost:3000");
+    socket.on("connect", () => {
+      console.log("Connected to socket server");
+    });
+
+    socket.on("case_completed", async (data) => {
+      console.log("Received case:", data);
+      await submitCaseToFirestore(data);
+    });
+  }, []);
+
+  const handleRegister = async (userData: any): Promise<boolean> => {
+    try {
+      const success = await register(userData);
+      if (success) {
+        if (userData.role === "specialist") {
+          showToast(
+            "Registration successful! Awaiting admin approval for specialist access.",
+            "info",
+            7000
+          );
+        } else {
+          showToast("Registration successful!", "success");
+        }
+      } else {
+        showToast("Registration failed", "error");
+      }
+      return success;
+    } catch (error) {
+      showToast("Registration failed", "error");
+      return false;
+    }
+  };
+>>>>>>> 4fef016 (feat: sync twilio with frontend)
 
 	const handleLogout = () => {
 		logout();
@@ -265,6 +308,7 @@ function App() {
 		);
 	}
 
+<<<<<<< HEAD
 	return (
 		<>
 			{/* {user.role === "consulting_doctor" ? ( */}
@@ -291,6 +335,35 @@ function App() {
 	// 	<PhoneNumberSignUp />
 	// </>
 	// );
+=======
+  return (
+    //   <>
+    //     {user.role === "consulting_doctor" ? (
+    //       <ConsultingDoctorDashboard
+    //         user={user}
+    //         connectionStatus={connectionStatus}
+    //         onLogout={handleLogout}
+    //         notImplemented={notImplemented}
+    //       />
+    //     ) : (
+    //       <SpecialistDashboard
+    //         user={user}
+    //         connectionStatus={connectionStatus}
+    //         onLogout={handleLogout}
+    //         notImplemented={notImplemented}
+    //       />
+    //     )}
+    //     <ToastContainer toasts={toasts} onRemove={removeToast} />
+    //   </>
+    // );
+
+    <>
+      <GoogleSignUp />
+      <EmailAndPasswordSignUp />
+      <PhoneNumberSignUp />
+    </>
+  );
+>>>>>>> 4fef016 (feat: sync twilio with frontend)
 }
 
 export default App;
