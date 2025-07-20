@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
 	AlertTriangle,
 	CheckCircle,
@@ -217,6 +218,7 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 					</div>
 					<div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
 						<select
+							title="availability"
 							value={availabilityStatus}
 							onChange={(e) =>
 								setAvailabilityStatus(e.target.value as any)

@@ -57,6 +57,7 @@ export const NewConsultationForm: React.FC<NewConsultationFormProps> = ({
 					New Consultation
 				</h3>
 				<button
+					title="cancel"
 					onClick={onCancel}
 					className="text-gray-400 hover:text-white transition-colors"
 				>
@@ -71,6 +72,7 @@ export const NewConsultationForm: React.FC<NewConsultationFormProps> = ({
 							Specialty
 						</label>
 						<select
+							title="specialty"
 							name="specialty"
 							value={formData.specialty}
 							onChange={handleChange}
@@ -91,6 +93,7 @@ export const NewConsultationForm: React.FC<NewConsultationFormProps> = ({
 							Priority
 						</label>
 						<select
+							title="priority"
 							name="priority"
 							value={formData.priority}
 							onChange={handleChange}

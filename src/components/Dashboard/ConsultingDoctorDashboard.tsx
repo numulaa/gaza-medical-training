@@ -476,6 +476,7 @@ export const ConsultingDoctorDashboard: React.FC<
 									Sort By
 								</label>
 								<select
+									title="sortBy"
 									value={sortBy}
 									onChange={(e) =>
 										setSortBy(e.target.value as any)
