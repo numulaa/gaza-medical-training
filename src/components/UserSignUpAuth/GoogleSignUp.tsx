@@ -1,34 +1,37 @@
-import React, { useState } from "react";
-import { auth, googleProvider } from "../../lib/firebase";
 import { signInWithPopup, User } from "firebase/auth";
+import React from "react";
+import { auth, googleProvider } from "../../lib/firebase";
 import { Button } from "../ui/button";
 
-
-function GoogleSignUp() {
-  const [user, setUser] = useState<User | null>(null);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      setUser(result.user);
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-    }
-  };
-
-  return (
-    <div className="GoogleSignUp">
-    
-      {!user ? (
-        <Button onClick={handleGoogleSignIn}>Sign in with Google</Button>
-      ) : (
-        <div>
-          <h2>Welcome, {user.displayName}</h2>
-          <img src={user.photoURL || ""} alt="User Avatar" />
-        </div>
-      )}
-    </div>
-  );
+interface GoogleSignUpProps {
+	onSuccess: (user: User) => void;
+	onError: (error: Error) => void;
+	className?: string;
 }
+
+const GoogleSignUp: React.FC<GoogleSignUpProps> = ({
+	onSuccess,
+	onError,
+	className,
+}) => {
+	const handleGoogleSignIn = async () => {
+		try {
+			const result = await signInWithPopup(auth, googleProvider);
+			onSuccess(result.user);
+		} catch (error) {
+			onError(error as Error);
+		}
+	};
+
+	return (
+		<Button
+			onClick={handleGoogleSignIn}
+			className={className}
+			type="button"
+		>
+			Sign in with Google
+		</Button>
+	);
+};
 
 export default GoogleSignUp;
