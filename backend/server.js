@@ -87,7 +87,7 @@ app.post("/whatsapp", async (req, res) => {
     if (numMedia > 0) {
       session.case.media = session.case.media || [];
       session.case.media = session.case.media.concat(media);
-        for (let item of media) {
+      for (let item of media) {
         const mediaUrl = await uploadImage(item);
         mediaUrls.push(mediaUrl);
       }

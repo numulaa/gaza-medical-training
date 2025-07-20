@@ -67,3 +67,13 @@ export const SPECIALTIES = [
 	{ value: "Surgery", label: "Surgery", emoji: "🔪" },
 	{ value: "General Medicine", label: "General Medicine", emoji: "👨‍⚕️" },
 ];
+
+export interface caseDataProps {
+  caseId: string;
+  description: string;
+  patientAge: string;
+  media: string[];
+  link: string;
+  from: any;
+  createdAt: Date;
+}
