@@ -1,9 +1,10 @@
 import { AlertCircle, Clock, Hash, LogOut, Plus, User } from "lucide-react";
-import React, { useState } from "react";
-import { getPriorityColor, getPriorityIcon } from "../../lib/utils";
+import React, { useEffect, useState } from "react";
+import { BASE_URL, getPriorityColor, getPriorityIcon } from "../../lib/utils";
 import {
 	ConnectionStatus as ConnectionStatusType,
 	Consultation,
+	sourceEnum,
 	SPECIALTIES,
 	User as UserType,
 } from "../../types";
@@ -53,7 +54,7 @@ export const ConsultingDoctorDashboard: React.FC<
 			createdAt: new Date(Date.now() - 5 * 60 * 1000),
 			updatedAt: new Date(),
 			responses: [],
-			source: "web",
+			source: sourceEnum.web as keyof typeof sourceEnum,
 		},
 		{
 			id: "2",
@@ -75,10 +76,10 @@ export const ConsultingDoctorDashboard: React.FC<
 					content:
 						"Please check CBC and blood culture. Monitor for signs of dehydration.",
 					createdAt: new Date(Date.now() - 10 * 60 * 1000),
-					source: "web",
+					source: sourceEnum.web as keyof typeof sourceEnum,
 				},
 			],
-			source: "whatsapp",
+			source: sourceEnum.whatsapp as keyof typeof sourceEnum,
 		},
 		{
 			id: "3",
@@ -93,7 +94,7 @@ export const ConsultingDoctorDashboard: React.FC<
 			createdAt: new Date(Date.now() - 45 * 60 * 1000),
 			updatedAt: new Date(),
 			responses: [],
-			source: "whatsapp",
+			source: sourceEnum.whatsapp as keyof typeof sourceEnum,
 		},
 		{
 			id: "4",
@@ -116,15 +117,49 @@ export const ConsultingDoctorDashboard: React.FC<
 					content:
 						"Based on description, recommend immediate surgical exploration. Prepare for emergency laparotomy.",
 					createdAt: new Date(Date.now() - 5 * 60 * 1000),
-					source: "web",
+					source: sourceEnum.web as keyof typeof sourceEnum,
 				},
 			],
-			source: "web",
+			source: sourceEnum.web as keyof typeof sourceEnum,
 		},
 	]);
 
+	const [myQuestions, setMyQuestions] = useState<Consultation[]>([]);
+	const [loadingMyQuestions, setLoadingMyQuestions] = useState(false);
+	const [myQuestionsError, setMyQuestionsError] = useState<string | null>(
+		null
+	);
+
 	// Separate consultations by type
-	const myQuestions = consultations.filter((c) => c.createdBy === user.id);
+	// fetch my questions via api
+	useEffect(() => {
+		if (!user?.id) return;
+		setLoadingMyQuestions(true);
+		setMyQuestionsError(null);
+		fetch(
+			`${BASE_URL}/api/consultations?doctorId=${encodeURIComponent(
+				user.id
+			)}`,
+			{
+				headers: {
+					// 'Content-Type': 'application/json',
+					"Access-Control-Allow-Origin": "http://localhost:3000",
+				},
+			}
+		)
+			.then(async (res) => {
+				if (!res.ok) throw new Error("Failed to fetch consultations");
+				const data = await res.json();
+				console.log(data.consultations);
+				setMyQuestions(data.consultations || []);
+			})
+			.catch((err) => {
+				console.log(err);
+				setMyQuestionsError(err.message || "Unknown error");
+			})
+			.finally(() => setLoadingMyQuestions(false));
+	}, [user?.id]);
+
 	const receivedConsultations = consultations.filter(
 		(c) => c.createdBy !== user.id
 	);
@@ -173,7 +208,7 @@ export const ConsultingDoctorDashboard: React.FC<
 					comparison = a.specialty.localeCompare(b.specialty);
 					break;
 				case "responses":
-					comparison = a.responses.length - b.responses.length;
+					comparison = a.responses?.length - b.responses?.length;
 					break;
 			}
 
@@ -188,7 +223,24 @@ export const ConsultingDoctorDashboard: React.FC<
 		receivedConsultations
 	);
 
-	const formatTimeAgo = (date: Date) => {
+	const formatTimeAgo = (dateInput: any) => {
+		let date: Date;
+
+		if (dateInput instanceof Date) {
+			date = dateInput;
+		} else if (
+			dateInput &&
+			typeof dateInput === "object" &&
+			typeof dateInput.seconds === "number"
+		) {
+			// Firestore Timestamp object
+			date = new Date(dateInput.seconds * 1000);
+		} else if (typeof dateInput === "string") {
+			date = new Date(dateInput);
+		} else {
+			return "Unknown time";
+		}
+
 		const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
 		if (minutes < 1) return "Just now";
 		if (minutes < 60) return `${minutes} min ago`;
@@ -204,7 +256,7 @@ export const ConsultingDoctorDashboard: React.FC<
 
 	const handleJoinCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const formatted = formatJoinCode(e.target.value);
-		if (formatted.replace(/-/g, "").length <= 9) {
+		if (formatted.replace(/-/g, "")?.length <= 9) {
 			setJoinCode(formatted);
 		}
 	};
@@ -280,9 +332,9 @@ export const ConsultingDoctorDashboard: React.FC<
 					>
 						{consultation.status.replace("_", " ")}
 					</span>
-					{consultation.responses.length > 0 && (
+					{consultation.responses?.length > 0 && (
 						<span className="text-gray-400">
-							{consultation.responses.length} response
+							{consultation.responses?.length} response
 							{consultation.responses.length !== 1 ? "s" : ""}
 						</span>
 					)}
@@ -461,7 +513,9 @@ export const ConsultingDoctorDashboard: React.FC<
 								Questions Asked
 							</span>
 							<span className="sm:hidden">Asked</span>
-							<span className="ml-1">({myQuestions.length})</span>
+							<span className="ml-1">
+								({myQuestions?.length})
+							</span>
 						</button>
 						<button
 							onClick={() => setActiveTab("received")}
@@ -476,7 +530,7 @@ export const ConsultingDoctorDashboard: React.FC<
 							</span>
 							<span className="sm:hidden">Received</span>
 							<span className="ml-1">
-								({receivedConsultations.length})
+								({receivedConsultations?.length})
 							</span>
 						</button>
 					</div>
@@ -613,12 +667,12 @@ export const ConsultingDoctorDashboard: React.FC<
 						<div className="text-xs text-gray-400">
 							Showing{" "}
 							{activeTab === "my_questions"
-								? filteredMyQuestions.length
-								: filteredReceivedConsultations.length}{" "}
+								? filteredMyQuestions?.length
+								: filteredReceivedConsultations?.length}{" "}
 							of{" "}
 							{activeTab === "my_questions"
-								? myQuestions.length
-								: receivedConsultations.length}{" "}
+								? myQuestions?.length
+								: receivedConsultations?.length}{" "}
 							consultations
 						</div>
 					</div>
@@ -626,23 +680,35 @@ export const ConsultingDoctorDashboard: React.FC<
 					{/* Tab Content */}
 					{activeTab === "my_questions" && (
 						<div className="space-y-3 sm:space-y-4">
-							{filteredMyQuestions.length === 0 ? (
+							{filteredMyQuestions?.length === 0 ? (
 								<div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 text-center">
-									<p className="text-gray-400 text-sm">
-										{myQuestions.length === 0
-											? "You haven't asked any questions yet."
-											: "No consultations match your current filters."}
-									</p>
-									{myQuestions.length === 0 && (
-										<button
-											onClick={() =>
-												setShowNewConsultation(true)
-											}
-											className="mt-3 text-red-400 hover:text-red-300 text-sm font-medium"
-										>
-											Ask your first question →
-										</button>
+									{loadingMyQuestions ? (
+										<p className="text-gray-400 text-sm">
+											Loading your consultations...
+										</p>
+									) : myQuestionsError ? (
+										<p className="text-red-400 text-sm">
+											{myQuestionsError}
+										</p>
+									) : (
+										<p className="text-gray-400 text-sm">
+											{myQuestions?.length === 0
+												? "You haven't asked any questions yet."
+												: "No consultations match your current filters."}
+										</p>
 									)}
+									{!loadingMyQuestions &&
+										!myQuestionsError &&
+										myQuestions?.length === 0 && (
+											<button
+												onClick={() =>
+													setShowNewConsultation(true)
+												}
+												className="mt-3 text-red-400 hover:text-red-300 text-sm font-medium"
+											>
+												Ask your first question →
+											</button>
+										)}
 								</div>
 							) : (
 								filteredMyQuestions.map((consultation) =>
@@ -654,14 +720,14 @@ export const ConsultingDoctorDashboard: React.FC<
 
 					{activeTab === "received" && (
 						<div className="space-y-3 sm:space-y-4">
-							{filteredReceivedConsultations.length === 0 ? (
+							{filteredReceivedConsultations?.length === 0 ? (
 								<div className="bg-gray-800 border border-gray-700 rounded-lg p-4 sm:p-6 text-center">
 									<p className="text-gray-400 text-sm">
-										{receivedConsultations.length === 0
+										{receivedConsultations?.length === 0
 											? "No questions received via code or link yet."
 											: "No consultations match your current filters."}
 									</p>
-									{receivedConsultations.length === 0 && (
+									{receivedConsultations?.length === 0 && (
 										<p className="text-sm text-gray-500 mt-2">
 											Questions you join with codes or
 											links will appear here.

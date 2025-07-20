@@ -4,6 +4,7 @@ import { RegisterForm } from "./components/Auth/RegisterForm";
 
 import ConsultationThread from "./components/Consultation/ConsultationThread";
 import { ConsultingDoctorDashboard } from "./components/Dashboard/ConsultingDoctorDashboard";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { JoinConsultationForm } from "./components/JoinConsultation/JoinConsultationForm";
 import LandingPage from "./components/LandingPage";
 import { ToastContainer } from "./components/Toast";
@@ -12,7 +13,7 @@ import PhoneNumberSignUp from "./components/UserSignUpAuth/PhoneNumberSignUp";
 import { useAuth } from "./hooks/useAuth";
 import { useConnectionStatus } from "./hooks/useConnectionStatus";
 import { useToast } from "./hooks/useToast";
-import { Consultation } from "./types";
+import { Consultation, sourceEnum } from "./types";
 
 function App() {
 	const [currentView, setCurrentView] = useState<
@@ -122,10 +123,10 @@ function App() {
 						content:
 							"Patient vitals: HR 120, BP 90/60, RR 28, O2 sat 88% on room air. Visible chest wound with possible pneumothorax.",
 						createdAt: new Date(Date.now() - 8 * 60 * 1000),
-						source: "whatsapp",
+						source: sourceEnum.whatsapp as keyof typeof sourceEnum,
 					},
 				],
-				source: "whatsapp",
+				source: sourceEnum.whatsapp as keyof typeof sourceEnum,
 			},
 			"XYZ-123-456": {
 				id: "join-2",
@@ -141,7 +142,7 @@ function App() {
 				updatedAt: new Date(),
 				accessCode: code,
 				responses: [],
-				source: "web",
+				source: sourceEnum.web as keyof typeof sourceEnum,
 			},
 		};
 
@@ -174,38 +175,42 @@ function App() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-				<div className="text-white text-base sm:text-lg">
-					Loading...
+			<ErrorBoundary>
+				<div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+					<div className="text-white text-base sm:text-lg">
+						Loading...
+					</div>
 				</div>
-			</div>
+			</ErrorBoundary>
 		);
 	}
 
 	// Handle joined consultation view (accessible without login)
 	if (joinedConsultation) {
 		return (
-			<>
-				<ConsultationThread
-					consultation={joinedConsultation}
-					currentUser={
-						user || {
-							id: "guest",
-							name: "Guest",
-							email: "",
-							role: "specialist",
-							isApproved: true,
-							availabilityStatus: "available",
+			<ErrorBoundary>
+				<>
+					<ConsultationThread
+						consultation={joinedConsultation}
+						currentUser={
+							user || {
+								id: "guest",
+								name: "Guest",
+								email: "",
+								role: "specialist",
+								isApproved: true,
+								availabilityStatus: "available",
+							}
 						}
-					}
-					connectionStatus={connectionStatus}
-					onBack={() => setJoinedConsultation(null)}
-					onSendResponse={handleSendResponse}
-					onMarkResolved={handleMarkResolved}
-					notImplemented={notImplemented}
-				/>
-				<ToastContainer toasts={toasts} onRemove={removeToast} />
-			</>
+						connectionStatus={connectionStatus}
+						onBack={() => setJoinedConsultation(null)}
+						onSendResponse={handleSendResponse}
+						onMarkResolved={handleMarkResolved}
+						notImplemented={notImplemented}
+					/>
+					<ToastContainer toasts={toasts} onRemove={removeToast} />
+				</>
+			</ErrorBoundary>
 		);
 	}
 
@@ -214,83 +219,74 @@ function App() {
 			return <LandingPage onGetStarted={() => setShowAuth(true)} />;
 		}
 		return (
-			<>
-				{currentView === "login" ? (
-					<LoginForm
-						onLogin={handleLogin}
-						onSwitchToRegister={() => setCurrentView("register")}
-						showToast={showToast}
-						GoogleSignIn={GoogleSignUp}
-						PhoneSignIn={PhoneNumberSignUp}
-					/>
-				) : currentView === "join" ? (
-					<JoinConsultationForm
-						onJoinConsultation={handleJoinConsultation}
-						onBack={() => setCurrentView("login")}
-					/>
-				) : (
-					<RegisterForm
-						onRegister={handleRegister}
-						onSwitchToLogin={() => setCurrentView("login")}
-						showToast={showToast}
-						GoogleSignIn={GoogleSignUp}
-						PhoneSignIn={PhoneNumberSignUp}
-					/>
-				)}
-				<ToastContainer toasts={toasts} onRemove={removeToast} />
-			</>
+			<ErrorBoundary>
+				<>
+					{currentView === "login" ? (
+						<LoginForm
+							onLogin={handleLogin}
+							onSwitchToRegister={() =>
+								setCurrentView("register")
+							}
+							showToast={showToast}
+							GoogleSignIn={GoogleSignUp}
+							PhoneSignIn={PhoneNumberSignUp}
+						/>
+					) : currentView === "join" ? (
+						<JoinConsultationForm
+							onJoinConsultation={handleJoinConsultation}
+							onBack={() => setCurrentView("login")}
+						/>
+					) : (
+						<RegisterForm
+							onRegister={handleRegister}
+							onSwitchToLogin={() => setCurrentView("login")}
+							showToast={showToast}
+							GoogleSignIn={GoogleSignUp}
+							PhoneSignIn={PhoneNumberSignUp}
+						/>
+					)}
+					<ToastContainer toasts={toasts} onRemove={removeToast} />
+				</>
+			</ErrorBoundary>
 		);
 	}
 
 	if (user.role === "specialist" && !user.isApproved) {
 		return (
-			<div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-				<div className="bg-gray-800 rounded-lg p-6 sm:p-8 max-w-md text-center">
-					<h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
-						Awaiting Approval
-					</h2>
-					<p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
-						Your specialist account is pending admin approval.
-						You'll receive an email once approved.
-					</p>
-					<button
-						onClick={handleLogout}
-						className="bg-red-600 hover:bg-red-700 px-4 sm:px-6 py-2 rounded-lg text-white transition-colors text-sm sm:text-base"
-					>
-						Logout
-					</button>
+			<ErrorBoundary>
+				<div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+					<div className="bg-gray-800 rounded-lg p-6 sm:p-8 max-w-md text-center">
+						<h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
+							Awaiting Approval
+						</h2>
+						<p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
+							Your specialist account is pending admin approval.
+							You'll receive an email once approved.
+						</p>
+						<button
+							onClick={handleLogout}
+							className="bg-red-600 hover:bg-red-700 px-4 sm:px-6 py-2 rounded-lg text-white transition-colors text-sm sm:text-base"
+						>
+							Logout
+						</button>
+					</div>
+					<ToastContainer toasts={toasts} onRemove={removeToast} />
 				</div>
-				<ToastContainer toasts={toasts} onRemove={removeToast} />
-			</div>
+			</ErrorBoundary>
 		);
 	}
 
 	return (
-		<>
-			{/* {user.role === "consulting_doctor" ? ( */}
+		<ErrorBoundary>
 			<ConsultingDoctorDashboard
 				user={user}
 				connectionStatus={connectionStatus}
 				onLogout={handleLogout}
 				notImplemented={notImplemented}
 			/>
-			{/* ) : ( */}
-			{/* <SpecialistDashboard
-				user={user}
-				connectionStatus={connectionStatus}
-				onLogout={handleLogout}
-				notImplemented={notImplemented}
-			/> */}
-			{/* )} */}
 			<ToastContainer toasts={toasts} onRemove={removeToast} />
-		</>
+		</ErrorBoundary>
 	);
-
-	// <>
-	// 	<GoogleSignUp />
-	// 	<PhoneNumberSignUp />
-	// </>
-	// );
 }
 
 export default App;

@@ -49,7 +49,7 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 			createdAt: new Date(Date.now() - 2 * 60 * 1000),
 			updatedAt: new Date(),
 			responses: [],
-			source: "whatsapp",
+			source: sourceEnum.whatsapp as keyof typeof sourceEnum,
 		},
 		{
 			id: "2",
@@ -72,10 +72,10 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 					content:
 						"Please check CBC and blood culture. Monitor for signs of dehydration and consider IV fluids if oral intake is poor.",
 					createdAt: new Date(Date.now() - 3 * 60 * 1000),
-					source: "web",
+					source: sourceEnum.web as keyof typeof sourceEnum,
 				},
 			],
-			source: "web",
+			source: sourceEnum.web as keyof typeof sourceEnum,
 		},
 		{
 			id: "3",
@@ -98,7 +98,7 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 					content:
 						"Start metoprolol 25mg BID. Monitor BP and heart rate. If symptoms persist, consider ECG.",
 					createdAt: new Date(Date.now() - 45 * 60 * 1000),
-					source: "web",
+					source: sourceEnum.web as keyof typeof sourceEnum,
 				},
 				{
 					id: "3",
@@ -108,10 +108,10 @@ export const SpecialistDashboard: React.FC<SpecialistDashboardProps> = ({
 					content:
 						"Thank you, treatment initiated. Patient stable, HR normalized.",
 					createdAt: new Date(Date.now() - 30 * 60 * 1000),
-					source: "whatsapp",
+					source: sourceEnum.whatsapp as keyof typeof sourceEnum,
 				},
 			],
-			source: "web",
+			source: sourceEnum.web as keyof typeof sourceEnum,
 		},
 	]);
 
