@@ -2,18 +2,96 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { MessagingResponse } = require("twilio").twiml;
 const admin = require("firebase-admin");
+const axios = require("axios");
 
 // Initialize Firebase Admin
 const serviceAccount = require("./serviceAccountKey.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  projectId: "doctors-connect-be573"
+  projectId: "doctors-connect-be573",
+  storageBucket: "doctors-connect-be573.appspot.com" // Add this line
 });
 
 const db = admin.firestore();
+const bucket = admin.storage().bucket();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// Helper function to get file extension from MIME type
+function getFileExtension(mimeType) {
+  const extensions = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+    'audio/ogg': 'ogg',
+    'audio/mpeg': 'mp3',
+    'audio/wav': 'wav',
+    'audio/mp4': 'm4a',
+    'video/mp4': 'mp4',
+    'video/quicktime': 'mov'
+  };
+  return extensions[mimeType] || 'bin';
+}
+
+// Helper function to process media files
+async function processMediaFile(mediaUrl, mediaType, caseId, index) {
+  try {
+    console.log(`Processing media: ${mediaType} from ${mediaUrl}`);
+    
+    // Download the file from Twilio
+    const response = await axios.get(mediaUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000 // 30 second timeout
+    });
+    
+    // Generate unique filename
+    const timestamp = Date.now();
+    const extension = getFileExtension(mediaType);
+    const fileName = `cases/${caseId}/media-${timestamp}-${index}.${extension}`;
+    
+    // Upload to Firebase Storage
+    const file = bucket.file(fileName);
+    
+    await file.save(response.data, {
+      metadata: {
+        contentType: mediaType,
+        metadata: {
+          originalUrl: mediaUrl,
+          uploadedAt: new Date().toISOString(),
+          caseId: caseId
+        }
+      }
+    });
+    
+    console.log(`File uploaded to Firebase Storage: ${fileName}`);
+    
+    // Get signed URL (valid for 10 years)
+    const [signedUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: Date.now() + (10 * 365 * 24 * 60 * 60 * 1000) // 10 years
+    });
+    
+    return {
+      url: signedUrl,
+      type: mediaType,
+      fileName: fileName,
+      size: response.data.length,
+      uploadedAt: new Date().toISOString()
+    };
+    
+  } catch (error) {
+    console.error('Error processing media file:', error);
+    // Fallback to original URL if Firebase Storage fails
+    return {
+      url: mediaUrl,
+      type: mediaType,
+      error: error.message,
+      fallback: true
+    };
+  }
+}
 
 // Health check
 app.get("/", (req, res) => {
@@ -99,16 +177,37 @@ app.post("/whatsapp", async (req, res) => {
         twiml.message("Please enter a valid *age* (number).");
       }
 
-    // 4. Collect media (images/voice notes)
+    // 4. Collect media (images/voice notes) - UPDATED WITH FIREBASE STORAGE
     } else if (session.step === "media") {
       if (numMedia > 0) {
         session.case.media = session.case.media || [];
-        session.case.media = session.case.media.concat(media);
+        
+        // Process each media file
+        for (let i = 0; i < numMedia; i++) {
+          const mediaUrl = req.body[`MediaUrl${i}`];
+          const mediaType = req.body[`MediaContentType${i}`];
+          
+          console.log(`Processing media ${i + 1}/${numMedia}: ${mediaType}`);
+          
+          // Process and upload to Firebase Storage
+          const processedMedia = await processMediaFile(
+            mediaUrl, 
+            mediaType, 
+            session.caseId, 
+            session.case.media.length
+          );
+          
+          session.case.media.push(processedMedia);
+        }
+        
         session.lastUpdated = admin.firestore.FieldValue.serverTimestamp();
         await userSessionRef.update(session);
+        
+        const mediaCount = session.case.media.length;
         twiml.message(
-          'Media received! You can send more images or voice notes, or reply "done" to finish.'
+          `Media received! You now have ${mediaCount} file(s). You can send more images or voice notes, or reply "done" to finish.`
         );
+        
       } else if (req.body.Body && req.body.Body.trim().toLowerCase() === "done") {
         session.step = "confirmation";
         session.lastUpdated = admin.firestore.FieldValue.serverTimestamp();
@@ -210,7 +309,75 @@ app.get("/api/cases", async (req, res) => {
   }
 });
 
-// API to get specific case
+// API to get pending cases - MUST COME BEFORE /api/cases/:caseId
+app.get("/api/cases/pending", async (req, res) => {
+  try {
+    console.log("Fetching pending cases...");
+    
+    const snapshot = await db.collection("cases")
+      .where("status", "==", "pending")
+      .get();
+
+    console.log(`Found ${snapshot.size} pending cases`);
+
+    const cases = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      console.log("Case data:", data);
+      cases.push({
+        id: doc.id,
+        ...data
+      });
+    });
+
+    console.log("Sending response with cases:", cases.length);
+    res.json(cases);
+  } catch (error) {
+    console.error("Error fetching pending cases:", error);
+    console.error("Error details:", error.message);
+    res.status(500).json({ 
+      error: "Failed to fetch pending cases",
+      details: error.message 
+    });
+  }
+});
+
+// Simple test endpoint - MUST COME BEFORE /api/cases/:caseId
+app.get("/api/cases/test", async (req, res) => {
+  try {
+    console.log("Testing basic Firestore connection...");
+    
+    // Get all cases first
+    const snapshot = await db.collection("cases").get();
+    console.log(`Total cases in database: ${snapshot.size}`);
+    
+    const allCases = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      allCases.push({
+        id: doc.id,
+        status: data.status,
+        description: data.description
+      });
+    });
+    
+    // Filter pending cases in JavaScript
+    const pendingCases = allCases.filter(case_ => case_.status === "pending");
+    console.log(`Pending cases found: ${pendingCases.length}`);
+    
+    res.json({
+      total: allCases.length,
+      pending: pendingCases.length,
+      allCases: allCases,
+      pendingCases: pendingCases
+    });
+  } catch (error) {
+    console.error("Test failed:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API to get specific case - MUST COME AFTER specific routes
 app.get("/api/cases/:caseId", async (req, res) => {
   try {
     const { caseId } = req.params;
@@ -250,29 +417,6 @@ app.patch("/api/cases/:caseId/status", async (req, res) => {
   } catch (error) {
     console.error("Error updating case:", error);
     res.status(500).json({ error: "Failed to update case" });
-  }
-});
-
-// API to get pending cases
-app.get("/api/cases/pending", async (req, res) => {
-  try {
-    const snapshot = await db.collection("cases")
-      .where("status", "==", "pending")
-      .orderBy("createdAt", "asc")
-      .get();
-
-    const cases = [];
-    snapshot.forEach(doc => {
-      cases.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
-
-    res.json(cases);
-  } catch (error) {
-    console.error("Error fetching pending cases:", error);
-    res.status(500).json({ error: "Failed to fetch pending cases" });
   }
 });
 
