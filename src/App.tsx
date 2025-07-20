@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-import  { useState, useEffect } from 'react';
-import { LoginForm } from './components/Auth/LoginForm';
-import { RegisterForm } from './components/Auth/RegisterForm';
-import { JoinConsultationForm } from './components/JoinConsultation/JoinConsultationForm';
-import { ConsultingDoctorDashboard } from './components/Dashboard/ConsultingDoctorDashboard';
-import { SpecialistDashboard } from './components/Dashboard/SpecialistDashboard';
-import { ConsultationThread } from './components/Consultation/ConsultationThread';
-import { ToastContainer } from './components/Toast';
-import { useAuth } from './hooks/useAuth';
-import { useToast } from './hooks/useToast';
-import { useConnectionStatus } from './hooks/useConnectionStatus';
-import { Consultation } from './types';
-=======
 import { useState, useEffect } from "react";
 import { LoginForm } from "./components/Auth/LoginForm";
 import { RegisterForm } from "./components/Auth/RegisterForm";
@@ -24,7 +10,9 @@ import { useAuth } from "./hooks/useAuth";
 import { useToast } from "./hooks/useToast";
 import { useConnectionStatus } from "./hooks/useConnectionStatus";
 import { Consultation } from "./types";
->>>>>>> d508743 (feat: add firebase config and zod validation)
+import GoogleSignUp from "./components/UserSignUpAuth/GoogleSignUp";
+import EmailAndPasswordSignUp from "./components/UserSignUpAuth/EmailAndPasswordSignUp";
+import PhoneNumberSignUp from "./components/UserSignUpAuth/PhoneNumberSignUp";
 
 function App() {
   const [currentView, setCurrentView] = useState<"login" | "register" | "join">(
@@ -165,11 +153,7 @@ function App() {
   };
 
   const handleSendResponse = async (_: string) => {
-<<<<<<< HEAD
-    notImplemented('Send Response');
-=======
     notImplemented("Send Response");
->>>>>>> d508743 (feat: add firebase config and zod validation)
   };
 
   const handleMarkResolved = () => {
@@ -247,16 +231,6 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-gray-800 rounded-lg p-6 sm:p-8 max-w-md text-center">
-<<<<<<< HEAD
-          <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Awaiting Approval</h2>
-          <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
-            Your specialist account is pending admin approval. You'll receive an email once approved.
-          </p>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 px-4 sm:px-6 py-2 rounded-lg text-white transition-colors text-sm sm:text-base"
-          >
-=======
           <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
             Awaiting Approval
           </h2>
@@ -267,7 +241,6 @@ function App() {
           <button
             onClick={handleLogout}
             className="bg-red-600 hover:bg-red-700 px-4 sm:px-6 py-2 rounded-lg text-white transition-colors text-sm sm:text-base">
->>>>>>> d508743 (feat: add firebase config and zod validation)
             Logout
           </button>
         </div>
@@ -277,24 +250,32 @@ function App() {
   }
 
   return (
-    <>
-      {user.role === "consulting_doctor" ? (
-        <ConsultingDoctorDashboard
-          user={user}
-          connectionStatus={connectionStatus}
-          onLogout={handleLogout}
-          notImplemented={notImplemented}
-        />
-      ) : (
-        <SpecialistDashboard
-          user={user}
-          connectionStatus={connectionStatus}
-          onLogout={handleLogout}
-          notImplemented={notImplemented}
-        />
-      )}
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </>
+  //   <>
+  //     {user.role === "consulting_doctor" ? (
+  //       <ConsultingDoctorDashboard
+  //         user={user}
+  //         connectionStatus={connectionStatus}
+  //         onLogout={handleLogout}
+  //         notImplemented={notImplemented}
+  //       />
+  //     ) : (
+  //       <SpecialistDashboard
+  //         user={user}
+  //         connectionStatus={connectionStatus}
+  //         onLogout={handleLogout}
+  //         notImplemented={notImplemented}
+  //       />
+  //     )}
+  //     <ToastContainer toasts={toasts} onRemove={removeToast} />
+  //   </>
+  // );
+
+  <>
+  <GoogleSignUp />
+  <EmailAndPasswordSignUp />
+  <PhoneNumberSignUp />
+</>
+ 
   );
 }
 
