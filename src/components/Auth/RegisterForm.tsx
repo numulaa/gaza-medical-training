@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Stethoscope, ArrowLeft } from 'lucide-react';
-import { User } from '../../types';
+import { User, UserRegistration } from '../../types';
 
 interface RegisterFormProps {
-  onRegister: (userData: Partial<User>) => Promise<boolean>;
+  onRegister: (userData: Partial<UserRegistration>) => Promise<boolean>;
   onSwitchToLogin: () => void;
   loading?: boolean;
 }
@@ -16,9 +16,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     role: 'consulting_doctor' as 'consulting_doctor' | 'specialist',
     specialty: '',
     location: '',
-    // whatsappNo: '',
-    // medicalLicenseNo: '',
-    experience: ''
+    experience: '',
+    availabilityStatus: 'available' as 'available' | 'busy' | 'offline',
+    whatsappNo: '',
+    isApproved: false // This will be set based on role in the backend
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,6 +54,21 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="whatsappNo" className="block text-sm font-medium text-gray-300 mb-1">
+              WhatsApp Number
+            </label>
+            <input
+              type="tel"
+              id="whatsappNo"
+              name="whatsappNo"
+              value={formData.whatsappNo}
+              onChange={handleChange}
+              placeholder="+91 9876543210"
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+          </div>
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
               Full Name
@@ -95,6 +111,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
               onChange={handleChange}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
               required
+              minLength={6}
             />
           </div>
 
@@ -131,7 +148,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
 
           <div>
             <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-1">
-              Location (Optional)
+              Location
             </label>
             <input
               type="text"
@@ -142,6 +159,47 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
               placeholder="City, Country"
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
+          </div>
+
+          <div>
+            <label htmlFor="experience" className="block text-sm font-medium text-gray-300 mb-1">
+              Years of Experience
+            </label>
+            <input
+              type="text"
+              id="experience"
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              placeholder="e.g., 5 years, 10+ years"
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="availabilityStatus" className="block text-sm font-medium text-gray-300 mb-1">
+              Initial Availability Status
+            </label>
+            <select
+              id="availabilityStatus"
+              name="availabilityStatus"
+              value={formData.availabilityStatus}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="available">Available</option>
+              <option value="busy">Busy</option>
+              <option value="offline">Offline</option>
+            </select>
+          </div>
+
+          {/* Information about approval process */}
+          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+            <p className="text-blue-300 text-xs">
+              <strong>Note:</strong> {formData.role === 'specialist' 
+                ? 'Specialist accounts require admin approval before activation.' 
+                : 'Consulting doctor accounts are automatically approved.'}
+            </p>
           </div>
 
           <button

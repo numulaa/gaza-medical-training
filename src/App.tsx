@@ -1,42 +1,31 @@
 import { useState, useEffect } from "react";
-import { LoginForm } from "./components/Auth/LoginForm";
-import { RegisterForm } from "./components/Auth/RegisterForm";
+import { AuthProvider } from "./components/Auth/AuthProvider";
+import { useAuth } from "./hooks/useAuth";
+import { UnifiedAuthComponent } from "./components/Auth/UnifiedAuthComponent";
 import { JoinConsultationForm } from "./components/JoinConsultation/JoinConsultationForm";
 import { ConsultingDoctorDashboard } from "./components/Dashboard/ConsultingDoctorDashboard";
 import { SpecialistDashboard } from "./components/Dashboard/SpecialistDashboard";
 import { ConsultationThread } from "./components/Consultation/ConsultationThread";
 import { ToastContainer } from "./components/Toast";
-import { useAuth } from "./hooks/useAuth";
 import { useToast } from "./hooks/useToast";
 import { useConnectionStatus } from "./hooks/useConnectionStatus";
 import { Consultation } from "./types";
-import GoogleSignUp from "./components/UserSignUpAuth/GoogleSignUp";
-import EmailAndPasswordSignUp from "./components/UserSignUpAuth/EmailAndPasswordSignUp";
-import PhoneNumberSignUp from "./components/UserSignUpAuth/PhoneNumberSignUp";
+import { Stethoscope } from 'lucide-react';
 
-function App() {
-  const [currentView, setCurrentView] = useState<"login" | "register" | "join">(
-    "login"
-  );
-  const [joinedConsultation, setJoinedConsultation] =
-    useState<Consultation | null>(null);
-  const { user, loading, login, register, logout } = useAuth();
+// Main App Content Component (inside AuthProvider context)
+const AppContent = () => {
+  const [currentView, setCurrentView] = useState<"auth" | "join">("auth");
+  const [joinedConsultation, setJoinedConsultation] = useState<Consultation | null>(null);
+  
+  const { currentUser, userProfile, logout, loading } = useAuth();
   const { toasts, showToast, removeToast, notImplemented } = useToast();
   const connectionStatus = useConnectionStatus();
 
-  // Register service worker
+  // Handle URL-based routing for join functionality
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            console.log("SW registered: ", registration);
-          })
-          .catch((registrationError) => {
-            console.log("SW registration failed: ", registrationError);
-          });
-      });
+    const path = window.location.pathname;
+    if (path === "/join") {
+      setCurrentView("join");
     }
   }, []);
 
@@ -47,54 +36,8 @@ function App() {
     }
   }, [connectionStatus.isOnline, showToast]);
 
-  const handleLogin = async (
-    email: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      const success = await login(email, password);
-      if (success) {
-        showToast("Successfully logged in", "success");
-      } else {
-        showToast("Invalid credentials", "error");
-      }
-      return success;
-    } catch (error) {
-      showToast("Login failed", "error");
-      return false;
-    }
-  };
-
-  const handleRegister = async (userData: any): Promise<boolean> => {
-    try {
-      const success = await register(userData);
-      if (success) {
-        if (userData.role === "specialist") {
-          showToast(
-            "Registration successful! Awaiting admin approval for specialist access.",
-            "info",
-            7000
-          );
-        } else {
-          showToast("Registration successful!", "success");
-        }
-      } else {
-        showToast("Registration failed", "error");
-      }
-      return success;
-    } catch (error) {
-      showToast("Registration failed", "error");
-      return false;
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    showToast("Logged out successfully", "info");
-  };
-
   const handleJoinConsultation = async (code: string): Promise<boolean> => {
-    // Mock consultation lookup by code
+    // Mock consultation lookup by code (your existing logic)
     const mockConsultations: { [key: string]: Consultation } = {
       "ABC-DEF-GHI": {
         id: "join-1",
@@ -160,18 +103,20 @@ function App() {
     notImplemented("Mark Consultation as Resolved");
   };
 
-  // Handle URL-based routing for join functionality
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/join") {
-      setCurrentView("join");
-    }
-  }, []);
+  const handleLogout = () => {
+    logout();
+    showToast("Logged out successfully", "info");
+  };
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-white text-base sm:text-lg">Loading...</div>
+        <div className="text-center">
+          <Stethoscope size={48} className="text-red-500 mx-auto mb-4 animate-pulse" />
+          <div className="text-white text-lg">Loading...</div>
+          <div className="text-gray-400 text-sm mt-2">Checking authentication status</div>
+        </div>
       </div>
     );
   }
@@ -183,7 +128,7 @@ function App() {
         <ConsultationThread
           consultation={joinedConsultation}
           currentUser={
-            user || {
+            userProfile || {
               id: "guest",
               name: "Guest",
               email: "",
@@ -203,31 +148,53 @@ function App() {
     );
   }
 
-  if (!user) {
+  // Show join consultation form (no login required)
+  if (currentView === "join") {
     return (
       <>
-        {currentView === "login" ? (
-          <LoginForm
-            onLogin={handleLogin}
-            onSwitchToRegister={() => setCurrentView("register")}
-          />
-        ) : currentView === "join" ? (
-          <JoinConsultationForm
-            onJoinConsultation={handleJoinConsultation}
-            onBack={() => setCurrentView("login")}
-          />
-        ) : (
-          <RegisterForm
-            onRegister={handleRegister}
-            onSwitchToLogin={() => setCurrentView("login")}
-          />
-        )}
+        <JoinConsultationForm
+          onJoinConsultation={handleJoinConsultation}
+          onBack={() => setCurrentView("auth")}
+        />
         <ToastContainer toasts={toasts} onRemove={removeToast} />
       </>
     );
   }
 
-  if (user.role === "specialist" && !user.isApproved) {
+  // User not authenticated - show auth forms
+  if (!currentUser) {
+    return (
+      <>
+        <UnifiedAuthComponent />
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+        
+        {/* Join consultation button for non-authenticated users */}
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={() => setCurrentView("join")}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-lg"
+          >
+            Join with Code
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // User authenticated but no profile yet
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <Stethoscope size={48} className="text-red-500 mx-auto mb-4 animate-pulse" />
+          <div className="text-white text-lg">Setting up your profile...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Specialist awaiting approval
+  if (userProfile.role === "specialist" && !userProfile.isApproved) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-gray-800 rounded-lg p-6 sm:p-8 max-w-md text-center">
@@ -249,33 +216,50 @@ function App() {
     );
   }
 
+  // Authenticated user with approved profile - show dashboard
   return (
-  //   <>
-  //     {user.role === "consulting_doctor" ? (
-  //       <ConsultingDoctorDashboard
-  //         user={user}
-  //         connectionStatus={connectionStatus}
-  //         onLogout={handleLogout}
-  //         notImplemented={notImplemented}
-  //       />
-  //     ) : (
-  //       <SpecialistDashboard
-  //         user={user}
-  //         connectionStatus={connectionStatus}
-  //         onLogout={handleLogout}
-  //         notImplemented={notImplemented}
-  //       />
-  //     )}
-  //     <ToastContainer toasts={toasts} onRemove={removeToast} />
-  //   </>
-  // );
+    <>
+      {userProfile.role === "consulting_doctor" ? (
+        <ConsultingDoctorDashboard
+          user={userProfile}
+          connectionStatus={connectionStatus}
+          onLogout={handleLogout}
+          notImplemented={notImplemented}
+        />
+      ) : (
+        <SpecialistDashboard
+          user={userProfile}
+          connectionStatus={connectionStatus}
+          onLogout={handleLogout}
+          notImplemented={notImplemented}
+        />
+      )}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+    </>
+  );
+};
 
-  <>
-  <GoogleSignUp />
-  <EmailAndPasswordSignUp />
-  <PhoneNumberSignUp />
-</>
- 
+function App() {
+  // Register service worker (your existing logic)
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((registration) => {
+            console.log("SW registered: ", registration);
+          })
+          .catch((registrationError) => {
+            console.log("SW registration failed: ", registrationError);
+          });
+      });
+    }
+  }, []);
+
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

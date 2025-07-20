@@ -11,7 +11,9 @@ export interface User {
   whatsappNo?: string ,
   medicalLicenseNo?: string,
 }
-
+export interface UserRegistration extends Omit<User, 'id'> {
+  password: string;
+}
 export interface Consultation {
   id: string;
   title: string;
